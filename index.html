@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LiveSync PMS</title>
+<title>LiveSync PMS v7</title>
 <style>
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
@@ -3278,9 +3278,10 @@ function StatusDropdown({value,onChange,statuses}){
 
 // ── RAG ───────────────────────────────────────────────────────────────────────
 function ragStatus(tasks,ws){
+  const now=new Date();
   const active=tasks.filter(t=>t.workstream===ws&&isActive(t));
   if(!active.length)return "green";
-  const od=active.some(t=>{if(!t.deadline)return false;const d=parseDate(t.deadline);return d&&diffDays(d,TODAY)>0;});
+  const od=active.some(t=>{if(!t.deadline)return false;const d=parseDate(t.deadline);return d&&diffDays(d,now)>0;});
   const urg=active.some(t=>t.priority==="URGENT"&&t.status==="Not Started");
   if(od)return "red";if(urg)return "amber";return "green";
 }
@@ -3308,7 +3309,7 @@ function WorkstreamCard({ws,tasks,jumpToTask,getMember,getStatus,openEdit}){
       </div>
       {expanded&&<div className="divide-y divide-gray-800/60">{at.map(t=>{
         const mb=getMember(t.assignee);const st=getStatus(t.status);
-        const d=t.deadline?parseDate(t.deadline):null;const od=d&&diffDays(d,TODAY)>0;const prog=taskProgress(t);
+        const now=new Date();const d=t.deadline?parseDate(t.deadline):null;const od=d&&diffDays(d,now)>0;const prog=taskProgress(t);
         return(
           <div key={t.id} className={"flex items-center gap-3 px-4 py-2.5 hover:bg-gray-800/50 cursor-pointer "+(od?"bg-red-900/30":"")} onClick={()=>openEdit(t)}>
             <div className={"w-2 h-2 rounded-full flex-shrink-0 "+(t.priority==="URGENT"?"bg-red-500":t.priority==="High"?"bg-orange-500":t.priority==="Medium"?"bg-yellow-500":"bg-gray-600")}/>
@@ -3326,12 +3327,13 @@ function WorkstreamCard({ws,tasks,jumpToTask,getMember,getStatus,openEdit}){
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMember,getWS,getStatus,activityLog}){
+  const now=new Date();
   const visibleTasks=tasks.filter(t=>t.status!=="Archive - Complete");
   const total=visibleTasks.length;const complete=visibleTasks.filter(t=>t.status==="Complete"||t.status==="Complete - RR").length;const pct=Math.round(complete/total*100)||0;
-  const lastThu=getLastThursday(TODAY);const nextThu=getNextThursday(TODAY);
-  const overdue=tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);return d&&diffDays(d,TODAY)>0;}).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const lastThu=getLastThursday(now);const nextThu=getNextThursday(now);
+  const overdue=tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);return d&&diffDays(d,now)>0;}).sort((a,b)=>a.deadline.localeCompare(b.deadline));
   const unassigned=tasks.filter(t=>!t.assignee||t.assignee==="Unassigned");
-  const upcoming=tasks.filter(t=>{if(t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);if(!d)return false;const diff=diffDays(TODAY,d);return diff>=0&&diff<=14;}).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const upcoming=tasks.filter(t=>{if(t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);if(!d)return false;const diff=diffDays(now,d);return diff>=0&&diff<=14;}).sort((a,b)=>a.deadline.localeCompare(b.deadline));
   // Normalise to midnight so log entries from that day are included
   const lastThuMidnight=new Date(lastThu);lastThuMidnight.setHours(0,0,0,0);
   const sinceLastThu=activityLog.filter(e=>{const d=parseDate(e.date);return d&&d>=lastThuMidnight;});
@@ -3343,7 +3345,7 @@ function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMe
       <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
         <h2 className="text-2xl font-bold">Dashboard</h2>
         <div className="flex items-center gap-4">
-          <div className="text-right"><div className="text-gray-400 text-xs">Today</div><div className="text-white font-semibold">{TODAY.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div></div>
+          <div className="text-right"><div className="text-gray-400 text-xs">Today</div><div className="text-white font-semibold">{now.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div></div>
           <div className="bg-indigo-900/50 border border-indigo-700 rounded-xl px-4 py-2 text-right"><div className="text-indigo-300 text-xs">Next Thursday Meeting</div><div className="text-white font-semibold text-sm">{nextThu.toLocaleDateString("en-GB",{day:"numeric",month:"long"})}</div></div>
         </div>
       </div>
@@ -3364,7 +3366,7 @@ function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMe
         <div className={"bg-gray-900 rounded-xl border p-4 "+(overdue.length?"border-red-800":"border-gray-800")}><div className="flex items-center gap-2 mb-3"><div className={"w-2 h-2 rounded-full "+(overdue.length?"bg-red-500":"bg-gray-600")}/><h3 className="font-semibold text-sm text-gray-200">Overdue</h3><span className={"text-xs px-2 py-0.5 rounded-full font-bold "+(overdue.length?"bg-red-900 text-red-300":"bg-gray-800 text-gray-500")}>{overdue.length}</span></div>{overdue.length===0?<p className="text-gray-600 text-xs">None</p>:<div className="space-y-1.5">{overdue.slice(0,5).map(t=>{const mb=getMember(t.assignee);return <div key={t.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 rounded-lg px-2 py-1 -mx-2" onClick={()=>openEdit(t)}><Avatar member={mb}/><span className="flex-1 text-xs text-gray-300 truncate">{t.name}</span><span className="text-xs text-red-400 font-semibold">{t.deadline}</span></div>;})}{overdue.length>5&&<p className="text-xs text-gray-500">+{overdue.length-5} more</p>}</div>}</div>
         <div className={"bg-gray-900 rounded-xl border p-4 "+(unassigned.length?"border-yellow-800":"border-gray-800")}><div className="flex items-center gap-2 mb-3"><div className={"w-2 h-2 rounded-full "+(unassigned.length?"bg-yellow-400":"bg-gray-600")}/><h3 className="font-semibold text-sm text-gray-200">Unassigned</h3><span className={"text-xs px-2 py-0.5 rounded-full font-bold "+(unassigned.length?"bg-yellow-900 text-yellow-300":"bg-gray-800 text-gray-500")}>{unassigned.length}</span></div>{unassigned.length===0?<p className="text-gray-600 text-xs">All assigned.</p>:<div className="space-y-1.5">{unassigned.slice(0,5).map(t=>{const ws=getWS(t.workstream);return <div key={t.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 rounded-lg px-2 py-1 -mx-2" onClick={()=>openEdit(t)}><div className={"w-2 h-2 rounded-full flex-shrink-0 "+ws.dot}/><span className="flex-1 text-xs text-gray-300 truncate">{t.name}</span></div>;})}{unassigned.length>5&&<p className="text-xs text-gray-500">+{unassigned.length-5} more</p>}</div>}</div>
       </div>
-      {upcoming.length>0&&<div className="bg-gray-900 rounded-xl border border-gray-800 p-4 mb-5"><h3 className="font-semibold text-sm text-gray-200 mb-3">Upcoming — next 14 days</h3><div className="space-y-1.5">{upcoming.map(t=>{const mb=getMember(t.assignee);const st=getStatus(t.status);const d=parseDate(t.deadline);const dl=d?diffDays(TODAY,d):null;return <div key={t.id} className={"flex items-center gap-3 cursor-pointer hover:bg-gray-800 rounded-lg px-2 py-1.5 -mx-2 "+(dl===0?"bg-amber-900/30 ring-1 ring-amber-700/50 rounded-lg":"")} onClick={()=>openEdit(t)}><Avatar member={mb}/><span className="flex-1 text-sm text-gray-200 truncate">{t.name}</span><span className={"px-2 py-0.5 rounded text-xs font-semibold "+st.badge}>{t.status}</span><span className={"text-xs flex-shrink-0 "+(dl===0?"text-orange-400 font-bold":dl<=3?"text-yellow-400":"text-gray-400")}>{dl===0?"🔔 Today":dl===1?"Tomorrow":"in "+dl+"d"}</span></div>;})} </div></div>}
+      {upcoming.length>0&&<div className="bg-gray-900 rounded-xl border border-gray-800 p-4 mb-5"><h3 className="font-semibold text-sm text-gray-200 mb-3">Upcoming — next 14 days</h3><div className="space-y-1.5">{upcoming.map(t=>{const mb=getMember(t.assignee);const st=getStatus(t.status);const d=parseDate(t.deadline);const dl=d?diffDays(now,d):null;return <div key={t.id} className={"flex items-center gap-3 cursor-pointer hover:bg-gray-800 rounded-lg px-2 py-1.5 -mx-2 "+(dl===0?"bg-amber-900/30 ring-1 ring-amber-700/50 rounded-lg":"")} onClick={()=>openEdit(t)}><Avatar member={mb}/><span className="flex-1 text-sm text-gray-200 truncate">{t.name}</span><span className={"px-2 py-0.5 rounded text-xs font-semibold "+st.badge}>{t.status}</span><span className={"text-xs flex-shrink-0 "+(dl===0?"text-orange-400 font-bold":dl<=3?"text-yellow-400":"text-gray-400")}>{dl===0?"🔔 Today":dl===1?"Tomorrow":"in "+dl+"d"}</span></div>;})} </div></div>}
       <div className="space-y-3">
         <div className="flex items-center justify-between mb-1"><h3 className="font-semibold text-gray-200">Active Workstreams</h3><div className="flex items-center gap-4 text-xs text-gray-500">{Object.entries(RAG).map(([k,v])=><div key={k} className="flex items-center gap-1"><div className={"w-2 h-2 rounded-full "+v.dot}/>{v.label}</div>)}</div></div>
         {sortedWS.map(ws=><WorkstreamCard key={ws.id} ws={ws} tasks={tasks} jumpToTask={jumpToTask} getMember={getMember} getStatus={getStatus} openEdit={openEdit}/>)}
@@ -3405,7 +3407,7 @@ function EmojiTracker({members,emojiLog,setEmojiLog,gsClientRef,gsConnected}){
   const[expanded,setExpanded]=useState(false);
   const[saving,setSaving]=useState(false);
   const[activeMember,setActiveMember]=useState(null);
-  const thisWeek=getISOWeek(TODAY);
+  const thisWeek=getISOWeek(new Date());
   const teamMembers=members.filter(m=>m.name!=="Unassigned");
   function getEntry(name){return emojiLog.find(e=>e.week===thisWeek&&e.member===name);}
   function setEmoji(name,emoji){
@@ -3521,16 +3523,17 @@ function MeetingSetupPanel({members,meetingAttendees,toggleAttendee,startMeeting
 
 // ── MEETING PACK ──────────────────────────────────────────────────────────────
 function MeetingPack({tasks,getMember,getStatus,jumpToTask,members,agendaText,setAgendaText,agendaStructure,gsClientRef,gsConnected,emojiLog,setEmojiLog,meetingMode,meetingAttendees,toggleAttendee,startMeeting,endMeeting}){
-  const nextThu=getNextThursday(TODAY);const lastThu=getLastThursday(TODAY);
-  const overdue=tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete"))return false;const d=parseDate(t.deadline);return d&&diffDays(d,TODAY)>0;});
-  const dueBeforeNext=tasks.filter(t=>{if(t.status.includes("Complete"))return false;const d=parseDate(t.deadline);if(!d)return false;return diffDays(TODAY,d)>=0&&diffDays(TODAY,d)<=diffDays(TODAY,nextThu);});
+  const now=new Date();
+  const nextThu=getNextThursday(now);const lastThu=getLastThursday(now);
+  const overdue=tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete"))return false;const d=parseDate(t.deadline);return d&&diffDays(d,now)>0;});
+  const dueBeforeNext=tasks.filter(t=>{if(t.status.includes("Complete"))return false;const d=parseDate(t.deadline);if(!d)return false;return diffDays(now,d)>=0&&diffDays(now,d)<=diffDays(now,nextThu);});
   const actionRequired=[...overdue,...dueBeforeNext.filter(t=>!overdue.find(o=>o.id===t.id))].sort((a,b)=>(a.deadline||"9999").localeCompare(b.deadline||"9999"));
   const needsReview=tasks.filter(t=>t.status==="Complete - RR");
   const lastThuMid=new Date(lastThu);lastThuMid.setHours(0,0,0,0);
   const notReviewed=tasks.filter(t=>{if(!isActive(t))return false;if(!t.lastReviewed)return true;const lr=parseDate(t.lastReviewed);return lr&&lr<lastThuMid;}).sort((a,b)=>(PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));
   const[saving,setSaving]=useState(false);
   const[saved,setSaved]=useState(false);
-  const isFriday=TODAY.getDay()===5;
+  const isFriday=now.getDay()===5;
   function handleChange(val){setAgendaText(val);setSaved(false);}
   async function saveAgenda(){
     setSaving(true);
@@ -3623,7 +3626,7 @@ function SettingsPanel({workstreams,setWorkstreams,statuses,setStatuses,members,
   function cancelEdit(){setSEditMode(false);setSDrafts({});}
   return(
     <div className="max-w-5xl">
-      <div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Settings</h2><span className="text-xs text-gray-600 font-mono bg-gray-900 border border-gray-800 px-2.5 py-1 rounded-lg">v5.3</span></div>
+      <div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Settings</h2><span className="text-xs text-gray-600 font-mono bg-gray-900 border border-gray-800 px-2.5 py-1 rounded-lg">v7</span></div>
       <div className="flex gap-5 mb-6"><div className="w-36 flex-shrink-0 space-y-3">{STABS_GROUPS.map(g=><div key={g}><div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 px-2">{g}</div>{STABS_DATA.filter(t=>t.group===g).map(t=><button key={t.id} onClick={()=>{setSTab(t.id);cancelEdit();}} className={"w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors "+(sTab===t.id?"bg-indigo-600 text-white font-medium":"text-gray-400 hover:text-gray-200 hover:bg-gray-800")}>{t.label}</button>)}</div>)}</div><div className="flex-1 min-w-0">
 
       {sTab==="workstreams"&&<div>
@@ -3632,11 +3635,101 @@ function SettingsPanel({workstreams,setWorkstreams,statuses,setStatuses,members,
         <button onClick={()=>setWorkstreams(w=>[...w,{id:uid("ws"),name:"New Workstream",color:"bg-gray-700",text:"text-gray-100",dot:"bg-gray-500",border:"border-gray-500"}])} className="mt-3 text-sm text-indigo-400 hover:text-indigo-300">+ Add</button>
       </div>}
 
-      {sTab==="statuses"&&<div>
-        <div className="flex items-center justify-between mb-4"><p className="text-gray-400 text-sm">Rename statuses. Double-click to edit.</p><div className="flex gap-2">{sEditMode?<><button onClick={()=>saveEdits(setStatuses)} className="text-xs bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg">Save All</button><button onClick={cancelEdit} className="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Cancel</button></>:<button onClick={()=>enterEdit(statuses)} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">✏️ Edit All</button>}</div></div>
-        <div className="space-y-3">{statuses.map(s=><div key={s.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4"><span className={"px-3 py-1 rounded text-xs font-semibold flex-shrink-0 w-48 text-center "+s.badge}>{s.name}</span>{sEditMode?<input value={sDrafts[s.id]??s.name} onChange={e=>setSDrafts(d=>Object.assign({},d,{[s.id]:e.target.value}))} className="flex-1 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none"/>:<span className="flex-1 text-gray-400 text-sm cursor-pointer" onDoubleClick={()=>enterEdit(statuses)}>{s.name}</span>}<button onClick={()=>setStatuses(st=>st.filter(x=>x.id!==s.id))} className="text-xs bg-red-900 hover:bg-red-800 px-2 py-1 rounded text-red-300 flex-shrink-0">Del</button></div>)}</div>
-        <button onClick={()=>setStatuses(s=>[...s,{id:uid("st"),name:"New Status",badge:"bg-gray-700 text-gray-300",board:"border-gray-500"}])} className="mt-3 text-sm text-indigo-400 hover:text-indigo-300">+ Add</button>
-      </div>}
+      {sTab==="statuses"&&(()=>{
+        const STATUS_COLORS=[
+          {label:"Slate",bg:"bg-slate-700",text:"text-slate-300",board:"border-slate-500"},
+          {label:"Gray",bg:"bg-gray-700",text:"text-gray-300",board:"border-gray-500"},
+          {label:"Red",bg:"bg-red-700",text:"text-red-100",board:"border-red-500"},
+          {label:"Orange",bg:"bg-orange-700",text:"text-orange-100",board:"border-orange-500"},
+          {label:"Amber",bg:"bg-yellow-800",text:"text-yellow-200",board:"border-yellow-500"},
+          {label:"Yellow",bg:"bg-yellow-600",text:"text-yellow-900",board:"border-yellow-400"},
+          {label:"Green",bg:"bg-green-600",text:"text-white font-bold",board:"border-green-400"},
+          {label:"Emerald",bg:"bg-emerald-700",text:"text-emerald-100",board:"border-emerald-500"},
+          {label:"Teal",bg:"bg-teal-700",text:"text-teal-100",board:"border-teal-500"},
+          {label:"Cyan",bg:"bg-cyan-700",text:"text-cyan-100",board:"border-cyan-500"},
+          {label:"Sky",bg:"bg-sky-900",text:"text-sky-300",board:"border-sky-500"},
+          {label:"Blue",bg:"bg-blue-700",text:"text-blue-100",board:"border-blue-500"},
+          {label:"Indigo",bg:"bg-indigo-700",text:"text-indigo-100",board:"border-indigo-500"},
+          {label:"Violet",bg:"bg-violet-700",text:"text-violet-100",board:"border-violet-500"},
+          {label:"Purple",bg:"bg-purple-700",text:"text-purple-100",board:"border-purple-500"},
+          {label:"Pink",bg:"bg-pink-700",text:"text-pink-100",board:"border-pink-500"},
+          {label:"Dark",bg:"bg-gray-900",text:"text-gray-600",board:"border-gray-700"},
+        ];
+        const DOT_COLORS={"bg-slate-700":"#64748b","bg-gray-700":"#374151","bg-red-700":"#b91c1c","bg-orange-700":"#c2410c","bg-yellow-800":"#854d0e","bg-yellow-600":"#ca8a04","bg-green-600":"#16a34a","bg-emerald-700":"#047857","bg-teal-700":"#0f766e","bg-cyan-700":"#0e7490","bg-sky-900":"#0c4a6e","bg-blue-700":"#1d4ed8","bg-indigo-700":"#4338ca","bg-violet-700":"#6d28d9","bg-purple-700":"#7e22ce","bg-pink-700":"#be185d","bg-gray-900":"#111827"};
+        const[statusDrag,setStatusDrag]=useState(null);
+        const[statusDragOver,setStatusDragOver]=useState(null);
+        const[openColorPicker,setOpenColorPicker]=useState(null);
+        function moveStatus(fromIdx,toIdx){
+          if(fromIdx===toIdx)return;
+          setStatuses(ss=>{const a=[...ss];const[item]=a.splice(fromIdx,1);a.splice(toIdx,0,item);return a;});
+        }
+        return <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-gray-400 text-sm">Manage statuses — drag to reorder, click colour to change.</p>
+              <p className="text-gray-600 text-xs mt-0.5">Order here is reflected on the Kanban board.</p>
+            </div>
+            <div className="flex gap-2">
+              {sEditMode?<><button onClick={()=>saveEdits(setStatuses)} className="text-xs bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg">Save Names</button><button onClick={cancelEdit} className="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Cancel</button></>:<button onClick={()=>enterEdit(statuses)} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">✏️ Edit Names</button>}
+            </div>
+          </div>
+          <div className="space-y-2">
+            {statuses.map((s,idx)=>{
+              const badgeParts=s.badge.split(" ");
+              const currentBg=badgeParts.find(p=>p.startsWith("bg-"))||"bg-gray-700";
+              const isDraggedOver=statusDragOver===idx&&statusDrag!==null&&statusDrag!==idx;
+              return(
+                <div key={s.id}
+                  draggable
+                  onDragStart={()=>setStatusDrag(idx)}
+                  onDragOver={e=>{e.preventDefault();setStatusDragOver(idx);}}
+                  onDragEnd={()=>{if(statusDrag!==null&&statusDragOver!==null)moveStatus(statusDrag,statusDragOver);setStatusDrag(null);setStatusDragOver(null);}}
+                  className={"bg-gray-900 border rounded-xl p-3 flex items-center gap-3 cursor-grab active:cursor-grabbing select-none transition-all "+(isDraggedOver?"border-indigo-500 bg-indigo-900/20":"border-gray-800")+(statusDrag===idx?" opacity-40":"")}>
+                  <span className="text-gray-600 text-sm flex-shrink-0" title="Drag to reorder">⠿</span>
+                  <div className="relative flex-shrink-0">
+                    <button
+                      onClick={()=>setOpenColorPicker(openColorPicker===s.id?null:s.id)}
+                      className={"w-6 h-6 rounded-full border-2 border-gray-600 hover:border-white transition-colors flex-shrink-0 "+currentBg}
+                      title="Change colour"
+                    />
+                    {openColorPicker===s.id&&(
+                      <div className="absolute left-0 top-8 z-30 bg-gray-950 border border-gray-700 rounded-xl p-2 shadow-2xl" style={{minWidth:220}}>
+                        <p className="text-xs text-gray-500 mb-2 px-1">Pick a colour</p>
+                        <div className="grid grid-cols-6 gap-1">
+                          {STATUS_COLORS.map(c=>(
+                            <button key={c.label} title={c.label}
+                              onClick={()=>{
+                                const existingText=s.badge.split(" ").filter(p=>!p.startsWith("bg-")&&!p.startsWith("text-")&&p!=="font-bold"&&p!=="italic").join(" ");
+                                const newBadge=(c.bg+" "+c.text+(existingText?" "+existingText:"")).trim();
+                                setStatuses(ss=>ss.map(x=>x.id===s.id?Object.assign({},x,{badge:newBadge,board:c.board}):x));
+                                setOpenColorPicker(null);
+                              }}
+                              className={"w-7 h-7 rounded-lg hover:scale-110 transition-transform border-2 "+c.bg+(currentBg===c.bg?" border-white":" border-transparent")}
+                            />
+                          ))}
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-gray-800 flex gap-1">
+                          <button onClick={()=>{setStatuses(ss=>ss.map(x=>x.id===s.id?Object.assign({},x,{badge:x.badge.includes("italic")?x.badge.replace(" italic",""):x.badge+" italic"}):x));}} className={"text-xs px-2 py-1 rounded border "+(s.badge.includes("italic")?"border-indigo-500 text-indigo-300 bg-indigo-900/30":"border-gray-700 text-gray-400")}><i>italic</i></button>
+                          <button onClick={()=>{setStatuses(ss=>ss.map(x=>x.id===s.id?Object.assign({},x,{badge:x.badge.includes("font-bold")?x.badge.replace(" font-bold",""):x.badge+" font-bold"}):x));}} className={"text-xs px-2 py-1 rounded border "+(s.badge.includes("font-bold")?"border-indigo-500 text-indigo-300 bg-indigo-900/30":"border-gray-700 text-gray-400")}><b>bold</b></button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <span className={"px-2 py-0.5 rounded text-xs font-semibold flex-shrink-0 w-40 text-center truncate "+s.badge}>{sEditMode?(sDrafts[s.id]??s.name):s.name}</span>
+                  {sEditMode
+                    ?<input value={sDrafts[s.id]??s.name} onChange={e=>setSDrafts(d=>Object.assign({},d,{[s.id]:e.target.value}))} className="flex-1 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none" onClick={e=>e.stopPropagation()}/>
+                    :<span className="flex-1 text-gray-400 text-sm cursor-pointer" onDoubleClick={()=>enterEdit(statuses)}>{s.name}</span>
+                  }
+                  <span className="text-gray-600 text-xs flex-shrink-0">#{idx+1}</span>
+                  <button onClick={()=>setStatuses(st=>st.filter(x=>x.id!==s.id))} className="text-xs bg-red-900 hover:bg-red-800 px-2 py-1 rounded text-red-300 flex-shrink-0">Del</button>
+                </div>
+              );
+            })}
+          </div>
+          <button onClick={()=>setStatuses(s=>[...s,{id:uid("st"),name:"New Status",badge:"bg-gray-700 text-gray-300",board:"border-gray-500"}])} className="mt-3 text-sm text-indigo-400 hover:text-indigo-300">+ Add</button>
+          {openColorPicker&&<div className="fixed inset-0 z-20" onClick={()=>setOpenColorPicker(null)}/>}
+        </div>;
+      })()}
 
       {sTab==="members"&&<div>
         <div className="flex items-center justify-between mb-4"><p className="text-gray-400 text-sm">Edit member names and colours. Double-click to edit.</p><div className="flex gap-2">{sEditMode?<><button onClick={()=>saveEdits(setMembers)} className="text-xs bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg">Save All</button><button onClick={cancelEdit} className="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Cancel</button></>:<button onClick={()=>enterEdit(members)} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">✏️ Edit All</button>}</div></div>
@@ -3874,7 +3967,7 @@ function Timeline({tasks,setTasks,workstreams,members,filterMember}){
   const tlStart=addDays(minDate,-7);const tlEnd=addDays(maxDate,14);
   const totalDays=diffDays(tlStart,tlEnd)||1;const totalPx=totalDays*DAY_PX;
   const mondays=getMondaysInRange(tlStart,tlEnd);
-  const todayPx=diffDays(tlStart,TODAY)*DAY_PX;
+  const todayPx=diffDays(tlStart,new Date())*DAY_PX;
   function px4d(d){return diffDays(tlStart,d)*DAY_PX;}
   function startDrag(e,taskId,mode){
     e.preventDefault();const sx=e.clientX;
@@ -3980,7 +4073,24 @@ const initTasks=[
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 function App(){
   const[tasks,setTasksRaw]=useState(initTasks);
-  const[view,setView]=useState("dashboard");const[workSubTab,setWorkSubTab]=useState("list");
+
+  // ── Archive-Complete: stamp date if missing, auto-expire after 7 days ────────
+  useEffect(()=>{
+    const today=fmtDate(new Date());
+    const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);
+    let changed=false;
+    const updated=tasks.map(t=>{
+      if(t.status!=="Archive - Complete") return t;
+      if(!t.archiveCompleteDate){changed=true;return Object.assign({},t,{archiveCompleteDate:today});}
+      return t;
+    }).filter(t=>{
+      if(t.status!=="Archive - Complete") return true;
+      const d=parseDate(t.archiveCompleteDate);
+      return !d||d>=cutoff;
+    });
+    if(changed||updated.length!==tasks.length) setTasksRaw(updated);
+  },[]);
+  const[view,setView]=useState("work");const[workSubTab,setWorkSubTab]=useState("kanban");
   const[workstreams,setWorkstreams]=useState(DEFAULT_WORKSTREAMS);
   const[statuses,setStatuses]=useState(DEFAULT_STATUSES);
   const[members,setMembers]=useState(DEFAULT_MEMBERS);
@@ -4391,7 +4501,8 @@ function App(){
   function openEdit(t){setEditTask(Object.assign({},t,{checklist:t.checklist||[]}));setShowModal(true);}
   function saveTask(){
     if(!editTask.name.trim())return;
-    const stamped=Object.assign({},editTask,{lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""});
+    const isAC=editTask.status==="Archive - Complete";
+    const stamped=Object.assign({},editTask,{lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!editTask.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{});
     if(stamped.id){const old=tasks.find(t=>t.id===stamped.id);setTasks(ts=>ts.map(t=>t.id===stamped.id?stamped:t));if(old&&old.status!==stamped.status){addLog("status_change","Status: "+stamped.name+" — "+old.status+" to "+stamped.status);if(stamped.status==="Complete"||stamped.status==="Complete - RR")addLog("task_complete","Completed: "+stamped.name);}else addLog("task_update","Edited: "+stamped.name);}
     else{setTasks(ts=>[...ts,Object.assign({},stamped,{id:uid("tsk")})]);addLog("task_add","Added: "+stamped.name);}
     setShowModal(false);
@@ -4413,7 +4524,7 @@ function App(){
     <div className="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col">
       <div className="bg-gray-900 border-b border-gray-800 px-4 py-2 flex items-center justify-between flex-wrap gap-2 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-white whitespace-nowrap">LiveSync Project Management</span>
+          <span className="text-lg font-bold text-white whitespace-nowrap">LiveSync Project Management <span className="text-xs text-gray-500 font-normal">v7</span></span>
           {gsConnected&&<span className={"text-xs px-2 py-0.5 rounded-full border transition-colors "+(gsSaving?"animate-pulse":"")} style={gsSaving?{color:"var(--amber,#f59e0b)",borderColor:"var(--amber,#f59e0b)",background:"rgba(245,158,11,0.1)"}:syncConflict?{color:"#f59e0b",borderColor:"#f59e0b",background:"rgba(245,158,11,0.1)"}:{color:"var(--green,#22c55e)",borderColor:"var(--green,#22c55e)",background:"rgba(34,197,94,0.1)"}}>{gsSaving?"Saving...":syncConflict?"⚠ Out of sync":"✓ Synced"}</span>}
           {!gsConnected&&<button onClick={()=>{setView("settings");setSettingsTab("sheets");}} className="text-xs text-yellow-400 border border-yellow-800 bg-yellow-900/20 px-2 py-0.5 rounded-full hover:bg-yellow-900/40">Not connected — click to set up Sheets</button>}
           {meetingMode&&<button onClick={endMeeting} className="flex items-center gap-1.5 bg-indigo-900 border border-indigo-600 px-3 py-1 rounded-lg text-xs text-indigo-200 animate-pulse">🔴 Live — End</button>}
@@ -4467,8 +4578,8 @@ function App(){
             {WORK_SUBTABS.map(s=><button key={s.id} onClick={()=>{setView(s.id);setWorkSubTab(s.id);}} className={"px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors "+(view===s.id?"border-indigo-500 text-white":"border-transparent text-gray-500 hover:text-gray-300")}>{s.label}</button>)}
           </div>
           {workSubTab==="timeline"&&<div><div className="flex items-center justify-between mb-4 flex-wrap gap-2"><h2 className="text-2xl font-bold">Timeline</h2><div className="flex gap-2 flex-wrap items-center"><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-xs font-medium">+ New Task</button>{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div></div><Timeline tasks={tasks} setTasks={setTasks} workstreams={workstreams} members={members} filterMember={filterMember}/></div>}
-        {workSubTab==="kanban"&&<div><div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Kanban</h2><div className="flex items-center gap-2"><select value={listSort.col==="priority"&&listSort.dir==="asc"?"priority_asc":listSort.col==="deadline"?"deadline_asc":listSort.col==="name"?"name_asc":"priority_asc"} onChange={e=>{const v=e.target.value;const[col,dir]=v.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option></select><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium">+ New Task</button></div></div><div className="flex gap-2 mb-4 flex-wrap">{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div><div style={{overflowX:"auto",overflowY:"visible",paddingBottom:"1rem"}}><div style={{display:"flex",gap:"12px",minWidth:"max-content",paddingBottom:"2px"}}>{statuses.map(st=>{const col=(()=>{  const base=tasks.filter(t=>t.status===st.name&&(filterMember==="All"||t.assignee===filterMember));  const{col:sc,dir}=listSort;const d=dir==="asc"?1:-1;  return [...base].sort((a,b)=>{    if(sc==="priority") return d*((PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));    if(sc==="name") return d*(a.name||"").localeCompare(b.name||"");    if(sc==="deadline"){const da=a.deadline||"9999",db=b.deadline||"9999";return d*(da.localeCompare(db));}    return 0;  });})();return <div key={st.id} className={"flex-shrink-0 w-60 border-t-2 "+st.board+" bg-gray-900 rounded-xl p-3"} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(dragTask){setTasks(ts=>ts.map(t=>t.id===dragTask?Object.assign({},t,{status:st.name}):t));addLog("status_change","Moved to "+st.name);}setDragTask(null);}}><div className="flex items-center justify-between mb-3"><span className={"text-xs font-semibold px-2 py-0.5 rounded "+st.badge}>{st.name}</span><span className="text-xs bg-gray-800 rounded-full px-2 py-0.5 text-gray-400">{col.length}</span></div><div className="space-y-2">{col.map(t=>{const ws=getWS(t.workstream),prog=taskProgress(t),mb=getMember(t.assignee),pri=PRIORITY_STYLE[t.priority||"N/A"];return <div key={t.id} draggable onDragStart={()=>setDragTask(t.id)} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 cursor-grab hover:bg-gray-700" onClick={()=>openEdit(t)}><div className={"h-1 w-full "+ws.dot} style={wsStyle(ws)}/><div className="p-3"><div className="flex items-start gap-2 mb-1">{t.priority&&t.priority!=="N/A"&&<span className={"text-xs px-1.5 py-0.5 rounded flex-shrink-0 "+pri.badge}>{t.priority}</span>}<div className="text-sm font-medium text-gray-200">{t.name}</div></div>{prog!==null&&<div className="mb-2"><div className="flex justify-between text-xs text-gray-400 mb-0.5"><span>Checklist</span><span>{prog}%</span></div><div className="h-1.5 bg-gray-700 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div></div>}<div className="flex items-center justify-between"><span className={"px-1.5 py-0.5 rounded text-xs "+ws.color+" "+ws.text}>{t.workstream.length>12?t.workstream.slice(0,12)+"...":t.workstream}</span><Avatar member={mb}/></div>{t.deadline&&<div className="text-xs text-gray-500 mt-1">Due {t.deadline}</div>}</div></div>;})}</div></div>;})} </div></div></div>}
-        {workSubTab==="list"&&<div><div className="flex items-center gap-2 mb-4 flex-wrap"><h2 className="text-2xl font-bold mr-2">Task List</h2><select value={filterMember} onChange={e=>setFilterMember(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All members</option>{members.map(m=><option key={m.id}>{m.name}</option>)}</select><select value={filterWS} onChange={e=>setFilterWS(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All workstreams</option>{workstreams.map(w=><option key={w.id}>{w.name}</option>)}</select><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All statuses</option>{statuses.map(s=><option key={s.id}>{s.name}</option>)}</select><select value={listSort.col+"_"+listSort.dir} onChange={e=>{const[col,dir]=e.target.value.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="priority_desc">Priority ↓</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option><option value="workstream_asc">Workstream A–Z</option><option value="assignee_asc">Assignee A–Z</option><option value="status_asc">Status A–Z</option></select><div className="flex-1"/><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">+ New Task</button></div><div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">            <table className="w-full text-sm"><thead><tr className="border-b border-gray-800 text-gray-400 text-xs uppercase"><th className="w-1 p-0"/>{[["name","Task",""],["priority","Priority","hidden lg:table-cell"],["workstream","Workstream","hidden md:table-cell"],["","Epic","hidden lg:table-cell"],["assignee","Assignee",""],["status","Status",""],["","Progress","hidden md:table-cell"],["deadline","Deadline","hidden md:table-cell"]].map(([col,label,cls])=><th key={label} className={"text-left p-3 select-none "+(cls||"")+(col?" cursor-pointer hover:text-white":"")} onClick={col?()=>setListSort(s=>({col,dir:s.col===col&&s.dir==="asc"?"desc":"asc"})):undefined}>{label}{col&&listSort.col===col?<span className="ml-1 text-indigo-400">{listSort.dir==="asc"?"▲":"▼"}</span>:col?<span className="ml-1 text-gray-700">⇅</span>:null}</th>)}<th className="p-3"/></tr></thead>            <tbody>{filtered.map(t=>{const prog=taskProgress(t),ws=getWS(t.workstream),mb=getMember(t.assignee),isRR=t.status==="Complete - RR",isFullyDone=t.status==="Complete",isArchived=t.status==="Archive - Complete",isDone=isRR||isFullyDone||isArchived,pri=PRIORITY_STYLE[t.priority||"N/A"];return <tr key={t.id} ref={el=>taskRefs.current[t.id]=el} className={"border-b border-gray-800 hover:bg-gray-800/50 "+(highlightTask===t.id?"bg-indigo-900/40 ":"")+(isFullyDone||isArchived?"opacity-60":"")+(isRR?" bg-green-950/20":"")+(isArchived?" opacity-50":"")}><td className={"w-1 p-0 border-l-4 "+ws.border}/><td className="p-3"><div className="flex items-center gap-2"><button onClick={()=>toggleTaskDone(t.id)} title={isRR?"Awaiting review — click to reopen":isFullyDone?"Complete — click to reopen":"Mark as complete (requires review)"} className={"w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center "+(isFullyDone||isArchived?"bg-green-500 border-green-500":isRR?"bg-amber-500 border-amber-500":"border-gray-600 hover:border-amber-400")}>{isDone&&<span className="text-white text-xs font-bold">✓</span>}</button><span className={"font-medium "+(isDone?"line-through text-gray-500":"text-gray-200")}>{t.name}</span></div>{t.notes&&<div className="text-xs text-gray-500 mt-0.5 truncate max-w-xs pl-7">{t.notes}</div>}{t.checklist&&t.checklist.length>0&&<div className="mt-1 space-y-0.5 pl-7">{t.checklist.map(c=><div key={c.id} className="flex items-center gap-1.5 cursor-pointer" onClick={()=>toggleCLDone(t.id,c.id)}><div className={"w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center "+(c.done?"bg-indigo-500 border-indigo-500":"border-gray-600")}>{c.done&&<span className="text-white text-xs">✓</span>}</div><span className={"text-xs "+(c.done?"line-through text-gray-500":"text-gray-400")}>{c.text}</span></div>)}</div>}</td><td className="p-3 hidden lg:table-cell"><span className={"px-2 py-0.5 rounded text-xs "+pri.badge}>{t.priority||"N/A"}</span></td><td className="p-3 hidden md:table-cell"><span className={"px-2 py-0.5 rounded text-xs font-semibold "+ws.color+" "+ws.text}>{t.workstream}</span></td><td className="p-3 hidden lg:table-cell text-gray-400 text-xs">{t.epic}</td><td className="p-3"><div className="flex items-center gap-1.5"><Avatar member={mb}/><span className="hidden sm:block text-gray-300">{t.assignee}</span></div></td><td className="p-3"><StatusDropdown value={t.status} onChange={v=>{setTasks(ts=>ts.map(x=>x.id===t.id?Object.assign({},x,{status:v,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""}):x));addLog("status_change","Status: "+t.name+" to "+v);}} statuses={statuses}/></td><td className="p-3 hidden md:table-cell">{prog!==null?<div className="flex items-center gap-2"><div className="h-1.5 w-16 bg-gray-800 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div><span className="text-xs text-gray-400">{prog}%</span></div>:<span className="text-xs text-gray-600">—</span>}</td><td className="p-3 hidden md:table-cell text-gray-400">{t.deadline||"—"}</td><td className="p-3"><div className="flex gap-1"><button onClick={()=>openEdit(t)} className="text-gray-500 hover:text-white p-1">✏️</button><button onClick={()=>deleteTask(t.id)} className="text-gray-500 hover:text-red-400 p-1">🗑</button></div></td></tr>;})} </tbody></table>            {filtered.length===0&&<div className="p-8 text-center text-gray-500">No tasks match filters</div>}          </div>        </div>}
+        {workSubTab==="kanban"&&<div><div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Kanban</h2><div className="flex items-center gap-2"><select value={listSort.col==="priority"&&listSort.dir==="asc"?"priority_asc":listSort.col==="deadline"?"deadline_asc":listSort.col==="name"?"name_asc":"priority_asc"} onChange={e=>{const v=e.target.value;const[col,dir]=v.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option></select><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium">+ New Task</button></div></div><div className="flex gap-2 mb-4 flex-wrap">{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div><div style={{overflowX:"auto",overflowY:"visible",paddingBottom:"1rem"}}><div style={{display:"flex",gap:"12px",minWidth:"max-content",paddingBottom:"2px"}}>{statuses.map(st=>{const col=(()=>{  const base=tasks.filter(t=>t.status===st.name&&(filterMember==="All"||t.assignee===filterMember));  const{col:sc,dir}=listSort;const d=dir==="asc"?1:-1;  return [...base].sort((a,b)=>{    if(sc==="priority") return d*((PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));    if(sc==="name") return d*(a.name||"").localeCompare(b.name||"");    if(sc==="deadline"){const da=a.deadline||"9999",db=b.deadline||"9999";return d*(da.localeCompare(db));}    return 0;  });})();return <div key={st.id} className={"flex-shrink-0 w-60 border-t-2 "+st.board+" bg-gray-900 rounded-xl p-3"} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(dragTask){const isAC=st.name==="Archive - Complete";setTasks(ts=>ts.map(t=>t.id===dragTask?Object.assign({},t,{status:st.name},isAC&&!t.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{}):t));addLog("status_change","Moved to "+st.name);}setDragTask(null);}}><div className="flex items-center justify-between mb-3"><span className={"text-xs font-semibold px-2 py-0.5 rounded "+st.badge}>{st.name}</span><span className="text-xs bg-gray-800 rounded-full px-2 py-0.5 text-gray-400">{col.length}</span></div><div className="space-y-2">{col.map(t=>{const ws=getWS(t.workstream),prog=taskProgress(t),mb=getMember(t.assignee),pri=PRIORITY_STYLE[t.priority||"N/A"];return <div key={t.id} draggable onDragStart={()=>setDragTask(t.id)} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 cursor-grab hover:bg-gray-700" onClick={()=>openEdit(t)}><div className={"h-1 w-full "+ws.dot} style={wsStyle(ws)}/><div className="p-3"><div className="flex items-start gap-2 mb-1">{t.priority&&t.priority!=="N/A"&&<span className={"text-xs px-1.5 py-0.5 rounded flex-shrink-0 "+pri.badge}>{t.priority}</span>}<div className="text-sm font-medium text-gray-200">{t.name}</div></div>{prog!==null&&<div className="mb-2"><div className="flex justify-between text-xs text-gray-400 mb-0.5"><span>Checklist</span><span>{prog}%</span></div><div className="h-1.5 bg-gray-700 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div></div>}<div className="flex items-center justify-between"><span className={"px-1.5 py-0.5 rounded text-xs "+ws.color+" "+ws.text}>{t.workstream.length>12?t.workstream.slice(0,12)+"...":t.workstream}</span><Avatar member={mb}/></div>{st.name==="Archive - Complete"&&t.archiveCompleteDate&&(()=>{const acd=parseDate(t.archiveCompleteDate);const expiresIn=acd?7-Math.round((new Date()-acd)/86400000):null;return <div className={"text-xs mt-1 "+(expiresIn!==null&&expiresIn<=2?"text-red-400":"text-gray-600")}>⏳ {expiresIn!==null?(expiresIn<=0?"Expires today":expiresIn===1?"Expires tomorrow":"Expires in "+expiresIn+"d"):"Expires soon"}</div>})()}{t.deadline&&st.name!=="Archive - Complete"&&<div className="text-xs text-gray-500 mt-1">Due {t.deadline}</div>}</div></div>;})}</div></div>;})} </div></div></div>}
+        {workSubTab==="list"&&<div><div className="flex items-center gap-2 mb-4 flex-wrap"><h2 className="text-2xl font-bold mr-2">Task List</h2><select value={filterMember} onChange={e=>setFilterMember(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All members</option>{members.map(m=><option key={m.id}>{m.name}</option>)}</select><select value={filterWS} onChange={e=>setFilterWS(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All workstreams</option>{workstreams.map(w=><option key={w.id}>{w.name}</option>)}</select><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All statuses</option>{statuses.map(s=><option key={s.id}>{s.name}</option>)}</select><select value={listSort.col+"_"+listSort.dir} onChange={e=>{const[col,dir]=e.target.value.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="priority_desc">Priority ↓</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option><option value="workstream_asc">Workstream A–Z</option><option value="assignee_asc">Assignee A–Z</option><option value="status_asc">Status A–Z</option></select><div className="flex-1"/><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">+ New Task</button></div><div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">            <table className="w-full text-sm"><thead><tr className="border-b border-gray-800 text-gray-400 text-xs uppercase"><th className="w-1 p-0"/>{[["name","Task",""],["priority","Priority","hidden lg:table-cell"],["workstream","Workstream","hidden md:table-cell"],["","Epic","hidden lg:table-cell"],["assignee","Assignee",""],["status","Status",""],["","Progress","hidden md:table-cell"],["deadline","Deadline","hidden md:table-cell"]].map(([col,label,cls])=><th key={label} className={"text-left p-3 select-none "+(cls||"")+(col?" cursor-pointer hover:text-white":"")} onClick={col?()=>setListSort(s=>({col,dir:s.col===col&&s.dir==="asc"?"desc":"asc"})):undefined}>{label}{col&&listSort.col===col?<span className="ml-1 text-indigo-400">{listSort.dir==="asc"?"▲":"▼"}</span>:col?<span className="ml-1 text-gray-700">⇅</span>:null}</th>)}<th className="p-3"/></tr></thead>            <tbody>{filtered.map(t=>{const prog=taskProgress(t),ws=getWS(t.workstream),mb=getMember(t.assignee),isRR=t.status==="Complete - RR",isFullyDone=t.status==="Complete",isArchived=t.status==="Archive - Complete",isDone=isRR||isFullyDone||isArchived,pri=PRIORITY_STYLE[t.priority||"N/A"];return <tr key={t.id} ref={el=>taskRefs.current[t.id]=el} className={"border-b border-gray-800 hover:bg-gray-800/50 "+(highlightTask===t.id?"bg-indigo-900/40 ":"")+(isFullyDone||isArchived?"opacity-60":"")+(isRR?" bg-green-950/20":"")+(isArchived?" opacity-50":"")}><td className={"w-1 p-0 border-l-4 "+ws.border}/><td className="p-3"><div className="flex items-center gap-2"><button onClick={()=>toggleTaskDone(t.id)} title={isRR?"Awaiting review — click to reopen":isFullyDone?"Complete — click to reopen":"Mark as complete (requires review)"} className={"w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center "+(isFullyDone||isArchived?"bg-green-500 border-green-500":isRR?"bg-amber-500 border-amber-500":"border-gray-600 hover:border-amber-400")}>{isDone&&<span className="text-white text-xs font-bold">✓</span>}</button><span className={"font-medium "+(isDone?"line-through text-gray-500":"text-gray-200")}>{t.name}</span></div>{t.notes&&<div className="text-xs text-gray-500 mt-0.5 truncate max-w-xs pl-7">{t.notes}</div>}{t.checklist&&t.checklist.length>0&&<div className="mt-1 space-y-0.5 pl-7">{t.checklist.map(c=><div key={c.id} className="flex items-center gap-1.5 cursor-pointer" onClick={()=>toggleCLDone(t.id,c.id)}><div className={"w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center "+(c.done?"bg-indigo-500 border-indigo-500":"border-gray-600")}>{c.done&&<span className="text-white text-xs">✓</span>}</div><span className={"text-xs "+(c.done?"line-through text-gray-500":"text-gray-400")}>{c.text}</span></div>)}</div>}</td><td className="p-3 hidden lg:table-cell"><span className={"px-2 py-0.5 rounded text-xs "+pri.badge}>{t.priority||"N/A"}</span></td><td className="p-3 hidden md:table-cell"><span className={"px-2 py-0.5 rounded text-xs font-semibold "+ws.color+" "+ws.text}>{t.workstream}</span></td><td className="p-3 hidden lg:table-cell text-gray-400 text-xs">{t.epic}</td><td className="p-3"><div className="flex items-center gap-1.5"><Avatar member={mb}/><span className="hidden sm:block text-gray-300">{t.assignee}</span></div></td><td className="p-3"><StatusDropdown value={t.status} onChange={v=>{const isAC=v==="Archive - Complete";setTasks(ts=>ts.map(x=>x.id===t.id?Object.assign({},x,{status:v,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!x.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{}):x));addLog("status_change","Status: "+t.name+" to "+v);}} statuses={statuses}/></td><td className="p-3 hidden md:table-cell">{prog!==null?<div className="flex items-center gap-2"><div className="h-1.5 w-16 bg-gray-800 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div><span className="text-xs text-gray-400">{prog}%</span></div>:<span className="text-xs text-gray-600">—</span>}</td><td className="p-3 hidden md:table-cell text-gray-400">{t.deadline||"—"}</td><td className="p-3"><div className="flex gap-1"><button onClick={()=>openEdit(t)} className="text-gray-500 hover:text-white p-1">✏️</button><button onClick={()=>deleteTask(t.id)} className="text-gray-500 hover:text-red-400 p-1">🗑</button></div></td></tr>;})} </tbody></table>            {filtered.length===0&&<div className="p-8 text-center text-gray-500">No tasks match filters</div>}          </div>        </div>}
         {workSubTab==="people"&&<div className="max-w-4xl mx-auto"><h2 className="text-2xl font-bold mb-6">People</h2><div className="grid grid-cols-1 gap-6 md:grid-cols-2">{members.filter(m=>m.name!=="Unassigned").map(m=>{const mt=tasks.filter(t=>t.assignee===m.name&&t.status!=="Archive - Complete"),md=mt.filter(t=>t.status==="Complete"||t.status==="Complete - RR").length,ongoing=mt.filter(t=>t.status==="Ongoing"),active=mt.filter(t=>isActive(t)&&t.status!=="Ongoing");return <div key={m.id} className="bg-gray-900 rounded-xl border border-gray-800 p-5"><div className="flex items-center gap-3 mb-4"><AvatarLg member={m}/><div><div className="font-bold text-lg">{m.name}</div><div className="text-gray-400 text-sm">{mt.length} tasks, {md} complete</div></div></div><div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-4"><div className={"h-full rounded-full "+m.bg} style={{width:(mt.length?Math.round(md/mt.length*100):0)+"%"}}/></div>{ongoing.length>0&&<div className="mb-3"><div className="text-xs text-gray-500 uppercase mb-1">Ongoing</div>{ongoing.map(t=><div key={t.id} className="text-sm text-blue-300 py-0.5 cursor-pointer hover:underline" onClick={()=>jumpToTask(t.id)}>• {t.name}</div>)}</div>}{active.length>0&&<div><div className="text-xs text-gray-500 uppercase mb-1">Active</div>{active.slice(0,5).map(t=><div key={t.id} className="text-sm text-gray-300 py-0.5 cursor-pointer hover:underline" onClick={()=>jumpToTask(t.id)}>• {t.name}</div>)}{active.length>5&&<div className="text-xs text-gray-500 mt-1">+{active.length-5} more</div>}</div>}</div>;})} </div></div>}
         </div>}
         {view==="decisions"&&<DecisionTracker decisions={decisions} setDecisions={setDecisions} members={members} workstreams={workstreams} epics={epics} meetingMode={meetingMode} meetingAttendees={meetingAttendees} addLog={addLog}/>}
