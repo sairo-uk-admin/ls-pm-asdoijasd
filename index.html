@@ -3377,17 +3377,17 @@ function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMe
 }
 
 // ── DEFAULT AGENDA STRUCTURE ─────────────────────────────────────────────────
-const DEFAULT_AGENDA_STRUCTURE=`Feelings, Emoji
+const DEFAULT_AGENDA_STRUCTURE=`Investment
 
-Admin and Legal
-Relationships Updates - refers to the People section.
-Investment and Financials
-Technology
-Research
-Experience and Game Design
-Marketing and Branding
+Admin
 
-Blockers, Actions, Needs from rest of group`;
+Technology Layer
+
+Experience Layer
+
+Go to Market Strategy
+
+Research and Competition`;
 
 // ── EMOJI HELPERS ─────────────────────────────────────────────────────────────
 const MOOD_EMOJIS=[
@@ -3563,7 +3563,7 @@ function MeetingPack({tasks,getMember,getStatus,jumpToTask,members,agendaText,se
             {isFriday&&<span className="text-xs text-amber-400 bg-amber-900/30 px-2 py-0.5 rounded border border-amber-700">Resets today (Friday)</span>}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={()=>{setAgendaText(agendaStructure||DEFAULT_AGENDA_STRUCTURE);setSaved(false);}} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-300">↺ Load template</button>
+            <button onClick={()=>{setAgendaText((agendaStructure&&agendaStructure.trim())?agendaStructure.trim():DEFAULT_AGENDA_STRUCTURE);setSaved(false);}} className="text-xs bg-indigo-700 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-indigo-100 flex items-center gap-1.5">📋 Load template</button>
             <button onClick={()=>{setAgendaText("");setSaved(false);}} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-400">Clear</button>
             <button onClick={saveAgenda} disabled={saving} className={"text-xs px-3 py-1.5 rounded-lg font-medium "+(saved?"bg-green-700 text-white":"bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50")}>{saving?"Saving...":saved?"✓ Saved":"Save agenda"}</button>
           </div>
@@ -3855,22 +3855,64 @@ function SettingsPanel({workstreams,setWorkstreams,statuses,setStatuses,members,
         </div>
       </div>}
 
-      {sTab==="agenda"&&<div className="max-w-2xl">
-        <p className="text-gray-400 text-sm mb-4">Define the default structure loaded into the meeting agenda. Click "Load template" in the Meeting Pack to use it.</p>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-4">
-          <label className="text-xs text-gray-400 uppercase tracking-wide block mb-2">Agenda Structure Template</label>
-          <textarea value={agendaStructure&&agendaStructure!==" "?agendaStructure:DEFAULT_AGENDA_STRUCTURE} onChange={e=>setAgendaStructure(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:280,lineHeight:"1.7"}}/>
-          <p className="text-gray-600 text-xs mt-2">Saved to your browser and to Google Sheets config.</p>
+      {sTab==="agenda"&&(()=>{
+        const liveStructure=agendaStructure&&agendaStructure!==" "?agendaStructure:DEFAULT_AGENDA_STRUCTURE;
+        const agendaItems=liveStructure.split("\n").map(l=>l.trim()).filter(Boolean);
+        return(
+        <div className="max-w-2xl">
+          {/* Header */}
+          <div className="mb-5">
+            <h3 className="text-white font-semibold text-base mb-1">Meeting Agenda Template</h3>
+            <p className="text-gray-400 text-sm">This template is loaded each time you click <span className="text-indigo-300 font-medium">↺ Load template</span> in the Meeting Pack. Edit it here to customise every meeting's agenda.</p>
+          </div>
+
+          {/* Live preview strip */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
+            <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">Preview — {agendaItems.length} agenda item{agendaItems.length!==1?"s":""}</p>
+            <div className="space-y-1.5">
+              {agendaItems.map((item,i)=>(
+                <div key={i} className="flex items-center gap-3 bg-gray-800/60 rounded-lg px-3 py-2">
+                  <span className="text-xs text-indigo-400 font-mono w-5 flex-shrink-0">{i+1}.</span>
+                  <span className="text-sm text-gray-200">{item}</span>
+                </div>
+              ))}
+              {agendaItems.length===0&&<p className="text-gray-600 text-sm italic">No items yet — type below to add agenda items.</p>}
+            </div>
+          </div>
+
+          {/* Editor */}
+          <div className="bg-gray-900 border border-indigo-800/50 rounded-xl p-5 mb-4">
+            <label className="text-xs text-indigo-300 uppercase tracking-wide font-semibold block mb-2">✏️ Edit Template</label>
+            <p className="text-gray-500 text-xs mb-3">One item per line. Blank lines are ignored in the preview but preserved in the editor.</p>
+            <textarea
+              value={liveStructure}
+              onChange={e=>setAgendaStructure(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y"
+              style={{minHeight:240,lineHeight:"1.8",fontFamily:"ui-monospace,monospace"}}
+            />
+            <p className="text-gray-700 text-xs mt-2">Changes auto-save to your browser. Syncs to Google Sheets when connected.</p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={()=>setAgendaStructure(DEFAULT_AGENDA_STRUCTURE)} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-gray-300 flex items-center gap-1.5">↺ Reset to default</button>
+            <button onClick={()=>{const el=document.createElement("textarea");el.value=liveStructure;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);}} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-gray-300 flex items-center gap-1.5">⎘ Copy template</button>
+            <button onClick={()=>setAgendaStructure(" ")} className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg text-gray-500">Clear</button>
+          </div>
+
+          {/* Tip */}
+          <div className="mt-5 bg-indigo-900/20 border border-indigo-800/40 rounded-xl p-4">
+            <p className="text-indigo-300 text-xs font-semibold mb-1">💡 How to use</p>
+            <p className="text-gray-400 text-xs leading-relaxed">Go to the <span className="text-white font-medium">Meeting Pack</span> tab, then click <span className="text-white font-medium">↺ Load template</span> to populate the agenda with these items. You can then edit the agenda for that specific meeting without affecting this template.</p>
+          </div>
+
+          <div className="mt-5 bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <p className="text-white font-semibold text-sm mb-1">Emoji Log — Google Sheets schema</p>
+            <div className="bg-gray-800/60 rounded-lg p-3 text-xs text-gray-400 font-mono mt-2">ID | Week (ISO e.g. 2026-W14) | Member | Emoji | Date (Thursday)</div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button onClick={()=>setAgendaStructure(DEFAULT_AGENDA_STRUCTURE)} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-gray-300">↺ Reset to default</button>
-          <button onClick={()=>setAgendaStructure("")} className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg text-gray-500">Clear</button>
-        </div>
-        <div className="mt-5 bg-gray-900 border border-gray-800 rounded-xl p-4">
-          <p className="text-white font-semibold text-sm mb-1">Emoji Log — Google Sheets schema</p>
-          <div className="bg-gray-800/60 rounded-lg p-3 text-xs text-gray-400 font-mono mt-2">ID | Week (ISO e.g. 2026-W14) | Member | Emoji | Date (Thursday)</div>
-        </div>
-      </div>}
+        );
+      })()}
       {sTab==="health"&&<div>{healthProps&&<SystemHealth {...healthProps}/>}</div>}
 
       {sTab==="audit"&&<div>
