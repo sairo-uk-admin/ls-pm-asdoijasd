@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIVESYNC — Project Pricing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:   #0036db;
+      --white:  #ffffff;
+      --black:  #252525;
+      --red:    #e52626;
+      --panel:  #f4f6fb;
+      --border: #d4dae8;
+    }
+
+    body {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 400;
+      color: var(--black);
+      background: var(--white);
+      padding: clamp(28px, 5vw, 64px);
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    /* ── Typography ── */
+    h1 {
+      font-size: clamp(1.9rem, 4.5vw, 3rem);
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.1;
+      margin-bottom: 0.35em;
+    }
+    h2 {
+      font-size: clamp(1rem, 2.2vw, 1.3rem);
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 0.5em;
+    }
+    p, li {
+      font-size: clamp(0.88rem, 1.8vw, 0.97rem);
+      line-height: 1.65;
+      color: var(--black);
+    }
+
+    /* ── Header ── */
+    .page-header {
+      border-bottom: 3px solid var(--black);
+      padding-bottom: 22px;
+      margin-bottom: 36px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-left { }
+    .logo { margin-bottom: 18px; }
+    .logo svg { height: 24px; width: auto; }
+    .header-sub {
+      font-size: 0.85rem;
+      color: var(--black);
+      opacity: 0.45;
+      margin-top: 6px;
+      max-width: 60ch;
+    }
+    .btn-configure {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--black);
+      background: none;
+      border: 1.5px solid var(--black);
+      border-radius: 8px;
+      padding: 9px 18px;
+      cursor: pointer;
+      white-space: nowrap;
+      opacity: 0.55;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-configure:hover { opacity: 1; }
+
+    /* ── Sections ── */
+    .section { margin-top: clamp(36px, 5vw, 60px); }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+    .section-note {
+      font-size: 0.8rem;
+      color: var(--black);
+      opacity: 0.42;
+      max-width: 72ch;
+    }
+
+    /* ── Stat cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px 22px 18px;
+    }
+    .stat-label {
+      font-size: 0.63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--black);
+      opacity: 0.45;
+      margin-bottom: 10px;
+    }
+    /* Key figures in Verdana, blue */
+    .stat-value {
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      color: var(--blue);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-sub {
+      font-size: 0.74rem;
+      color: var(--black);
+      opacity: 0.4;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    thead tr {
+      border-bottom: 2px solid var(--black);
+    }
+    th {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--black);
+      padding: 0 14px 10px 0;
+      text-align: left;
+      background: none;
+    }
+    th:last-child { text-align: right; padding-right: 0; }
+    td {
+      font-family: 'Raleway', sans-serif;
+      color: var(--black);
+      padding: 10px 14px 10px 0;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    td:last-child { text-align: right; padding-right: 0; }
+    td.num {
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 0.84rem;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    .total-row td {
+      font-weight: 700;
+      border-top: 1px solid var(--black);
+      border-bottom: none;
+    }
+    .total-row td.num { font-family: Verdana, Geneva, sans-serif; }
+
+    /* ── Readout rows (mini 3-col) ── */
+    .readout-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .readout-label {
+      font-size: 0.63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--black);
+      opacity: 0.4;
+      margin-bottom: 5px;
+    }
+    .readout-value {
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    /* ── Accordion ── */
+    .accordion-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      margin-top: 16px;
+      margin-bottom: 14px;
+    }
+    .accordion-trigger span {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--black);
+      opacity: 0.38;
+    }
+    .accordion-arrow {
+      font-size: 0.6rem;
+      opacity: 0.38;
+      transition: transform 0.18s;
+      display: inline-block;
+    }
+    .accordion-trigger.open .accordion-arrow { transform: rotate(180deg); }
+    .accordion-body { display: none; }
+    .accordion-body.open { display: block; }
+
+    /* ── Caption ── */
+    .caption {
+      font-size: 0.74rem;
+      color: var(--black);
+      opacity: 0.35;
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* ══════════════════════════════
+       WIZARD OVERLAY
+    ══════════════════════════════ */
+    .wizard-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(37,37,37,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .wizard-overlay.open { display: flex; }
+
+    .wizard-modal {
+      background: var(--white);
+      border-radius: 20px;
+      max-width: 560px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: clamp(28px, 4vw, 48px);
+      position: relative;
+    }
+
+    .wizard-close {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: none; border: none;
+      font-size: 1.2rem; cursor: pointer;
+      color: var(--black); opacity: 0.35;
+      font-family: 'Raleway', sans-serif;
+      line-height: 1;
+      transition: opacity 0.15s;
+    }
+    .wizard-close:hover { opacity: 0.7; }
+
+    /* Step indicator (inside modal) */
+    .step-indicator {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 36px;
+    }
+    .step-col { display: flex; flex-direction: column; align-items: center; }
+    .step-dot {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700; color: var(--black);
+      opacity: 0.35; flex-shrink: 0; transition: all 0.18s;
+    }
+    .step-dot.active { border-color: var(--black); background: var(--black); color: var(--white); opacity: 1; }
+    .step-dot.done   { border-color: var(--black); color: var(--black); opacity: 0.7; }
+    .step-lbl {
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--black); opacity: 0.32;
+      margin-top: 5px; white-space: nowrap; transition: opacity 0.18s;
+    }
+    .step-col.active .step-lbl { opacity: 0.65; }
+    .step-col.done   .step-lbl { opacity: 0.5;  }
+    .step-line { flex: 1; height: 1.5px; background: var(--border); margin: 13px 0 0; }
+    .step-line.done { background: var(--black); opacity: 0.3; }
+
+    /* Wizard panes */
+    .step-pane { display: none; }
+    .step-pane.active { display: block; }
+
+    .step-heading {
+      font-size: clamp(1.3rem, 3vw, 1.8rem);
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .step-sub {
+      font-size: 0.88rem;
+      color: var(--black);
+      opacity: 0.48;
+      line-height: 1.6;
+      margin-bottom: 28px;
+      max-width: 50ch;
+    }
+
+    /* Option cards */
+    .option-group { display: flex; flex-direction: column; gap: 9px; margin-bottom: 30px; }
+    .option-card {
+      border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 16px 18px; cursor: pointer; background: var(--white);
+      display: flex; align-items: center; gap: 13px;
+      transition: border-color 0.14s; text-align: left; width: 100%;
+    }
+    .option-card:hover { border-color: #9aaad4; }
+    .option-card.selected { border-color: var(--black); background: var(--panel); }
+    .option-radio {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.14s;
+    }
+    .option-card.selected .option-radio { border-color: var(--black); }
+    .option-radio-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--black); opacity: 0; transition: opacity 0.14s;
+    }
+    .option-card.selected .option-radio-dot { opacity: 1; }
+    .option-body { flex: 1; }
+    .option-name { font-size: 0.88rem; font-weight: 700; color: var(--black); margin-bottom: 2px; }
+    .option-desc { font-size: 0.76rem; color: var(--black); opacity: 0.45; line-height: 1.45; }
+    .option-price {
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      color: var(--black); white-space: nowrap;
+    }
+
+    /* Sliders */
+    .slider-block { margin-bottom: 22px; }
+    .slider-block label {
+      display: block; font-size: 0.67rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--black); opacity: 0.45; margin-bottom: 9px;
+    }
+    .slider-block input[type=range] {
+      width: 100%; accent-color: var(--black); height: 3px; margin-bottom: 7px;
+    }
+    .slider-readout {
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    .slider-val {
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 1.1rem; font-weight: 700; color: var(--black);
+    }
+    .slider-unit { font-size: 0.82rem; color: var(--black); opacity: 0.42; margin-left: 4px; }
+    .slider-hint { font-size: 0.68rem; color: var(--black); opacity: 0.35; }
+
+    .w-divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+    /* Wizard buttons */
+    .btn-row { display: flex; gap: 10px; align-items: center; margin-top: 28px; }
+    .btn-primary {
+      font-family: 'Raleway', sans-serif; font-size: 0.84rem; font-weight: 700;
+      background: var(--black); color: var(--white); border: none;
+      border-radius: 9px; padding: 13px 24px; cursor: pointer;
+      transition: opacity 0.14s;
+    }
+    .btn-primary:hover { opacity: 0.8; }
+    .btn-ghost {
+      font-family: 'Raleway', sans-serif; font-size: 0.82rem; font-weight: 700;
+      background: none; color: var(--black); border: none;
+      cursor: pointer; opacity: 0.35; padding: 13px 6px;
+      transition: opacity 0.14s;
+    }
+    .btn-ghost:hover { opacity: 0.65; }
+
+    @media (max-width: 540px) {
+      .readout-row { grid-template-columns: 1fr 1fr; }
+      .stats-grid   { grid-template-columns: 1fr 1fr; }
+      .page-header  { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════
+       MAIN PAGE
+  ═══════════════════════════════════ -->
+
+  <header class="page-header">
+    <div class="header-left">
+      <div class="logo">
+        <svg width="255" height="37" viewBox="0 0 255 37" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="5" transform="matrix(1 0 0 -1 1 11)" fill="#E52626"/><path d="M236.01 19.351V25.7689C236.01 26.8652 236.373 27.7076 237.099 28.2959C237.851 28.8842 238.819 29.1783 240.002 29.1783C241.211 29.1783 242.085 28.9911 242.622 28.6168C243.16 28.2424 243.603 27.6942 243.953 26.9722C244.329 26.2502 244.813 25.8892 245.404 25.8892H254.113C254.355 25.8892 254.557 25.9828 254.718 26.17C254.906 26.3304 255 26.531 255 26.7716C255 29.2585 253.817 31.5315 251.452 33.5906C250.269 34.6067 248.697 35.4357 246.735 36.0775C244.773 36.6925 242.461 37 239.8 37C237.139 37 234.706 36.5989 232.502 35.7967C230.325 34.9677 228.551 33.6307 227.18 31.7856C225.809 29.9137 225.124 27.6274 225.124 24.9265V20.1934C225.124 17.4926 225.809 15.2062 227.18 13.3343C229.761 9.85803 234.075 8.11987 240.123 8.11987C242.568 8.11987 244.773 8.44076 246.735 9.08254C248.697 9.69759 250.269 10.5132 251.452 11.5293C253.817 13.5884 255 15.8614 255 18.3483C255 18.5889 254.906 18.8029 254.718 18.99C254.557 19.1505 254.355 19.2307 254.113 19.2307H245.404C244.813 19.2307 244.329 18.8697 243.953 18.1477C243.603 17.4257 243.16 16.8775 242.622 16.5031C242.085 16.1288 241.211 15.9416 240.002 15.9416C238.819 15.9416 237.851 16.2357 237.099 16.824C236.373 17.4123 236.01 18.2547 236.01 19.351Z" fill="#0063DB"/><path d="M213.788 8.11987H221.078C221.366 8.11987 221.614 8.2261 221.823 8.43855C222.032 8.651 222.136 8.90329 222.136 9.19541V34.9286C222.136 35.2208 222.032 35.473 221.823 35.6855C221.614 35.8979 221.366 36.0042 221.078 36.0042H214.768C214.14 36.0042 213.618 35.7253 213.2 35.1676L204.655 24.0936V34.9286C204.655 35.2208 204.551 35.473 204.342 35.6855C204.132 35.8979 203.884 36.0042 203.597 36.0042H196.306C196.019 36.0042 195.771 35.8979 195.562 35.6855C195.353 35.473 195.248 35.2208 195.248 34.9286V9.19541C195.248 8.90329 195.353 8.651 195.562 8.43855C195.771 8.2261 196.019 8.11987 196.306 8.11987H202.656C203.283 8.11987 203.793 8.38544 204.185 8.91657L212.729 20.9068V9.19541C212.729 8.90329 212.834 8.651 213.043 8.43855C213.252 8.2261 213.5 8.11987 213.788 8.11987Z" fill="#0063DB"/><path d="M184.066 8.11987H192.381C192.62 8.11987 192.819 8.21282 192.978 8.39872C193.163 8.55806 193.256 8.73067 193.256 8.91657C193.256 9.10246 193.216 9.27508 193.137 9.43442L183.111 26.0455V34.9286C183.111 35.2208 183.005 35.473 182.793 35.6855C182.581 35.8979 182.329 36.0042 182.037 36.0042H173.563C173.272 36.0042 173.02 35.8979 172.808 35.6855C172.595 35.473 172.489 35.2208 172.489 34.9286V26.0455L162.504 9.43442C162.424 9.27508 162.384 9.10246 162.384 8.91657C162.384 8.73067 162.464 8.55806 162.623 8.39872C162.809 8.21282 163.021 8.11987 163.26 8.11987H171.654C172.396 8.11987 172.94 8.42527 173.285 9.03607L177.78 16.9233L182.395 9.11574C182.793 8.45183 183.35 8.11987 184.066 8.11987Z" fill="#0063DB"/><path d="M150.247 18.7093C154.627 19.2173 157.738 20.1666 159.58 21.5572C161.449 22.921 162.384 24.98 162.384 27.7343C162.384 30.4886 161.036 32.7215 158.338 34.4329C155.641 36.1443 152.063 37 147.604 37C143.144 37 139.672 36.1844 137.189 34.5532C134.732 32.8953 133.504 30.863 133.504 28.4563C133.504 27.868 133.811 27.5739 134.425 27.5739H142.637C143.197 27.5739 143.651 27.7477 143.999 28.0953C144.746 28.8173 146.041 29.1783 147.884 29.1783C150.421 29.1783 151.689 28.7906 151.689 28.0151C151.689 27.5338 151.289 27.1594 150.488 26.892C149.686 26.5978 148.098 26.3171 145.721 26.0496C138.164 25.1405 134.385 22.2391 134.385 17.3455C134.385 14.5912 135.6 12.3717 138.03 10.687C140.46 8.97558 143.705 8.11987 147.764 8.11987C151.849 8.11987 155.147 9.01569 157.657 10.8073C160.168 12.5722 161.423 14.4441 161.423 16.4229C161.423 16.6903 161.329 16.9043 161.142 17.0647C160.982 17.2251 160.755 17.3054 160.461 17.3054H151.849C151.369 17.3054 150.955 17.1449 150.608 16.824C149.967 16.2357 149.005 15.9416 147.724 15.9416C145.935 15.9416 145.04 16.316 145.04 17.0647C145.04 17.4658 145.387 17.7867 146.081 18.0274C146.776 18.2413 148.164 18.4686 150.247 18.7093Z" fill="#0063DB"/><path d="M114.815 28.2364H130.454C130.742 28.2364 130.99 28.3426 131.199 28.5551C131.408 28.7675 131.512 29.0198 131.512 29.3119V34.9286C131.512 35.2208 131.408 35.473 131.199 35.6855C130.99 35.8979 130.742 36.0042 130.454 36.0042H105.682C105.395 36.0042 105.147 35.8979 104.938 35.6855C104.729 35.473 104.624 35.2208 104.624 34.9286V9.19541C104.624 8.90329 104.729 8.651 104.938 8.43855C105.147 8.2261 105.395 8.11987 105.682 8.11987H130.062C130.35 8.11987 130.598 8.2261 130.807 8.43855C131.016 8.651 131.12 8.90329 131.12 9.19541V14.8121C131.12 15.1042 131.016 15.3565 130.807 15.569C130.598 15.7814 130.35 15.8876 130.062 15.8876H114.815V18.3972H127.906C128.194 18.3972 128.442 18.5035 128.651 18.7159C128.86 18.9284 128.965 19.1806 128.965 19.4728V24.6513C128.965 24.9434 128.86 25.1957 128.651 25.4081C128.442 25.6206 128.194 25.7268 127.906 25.7268H114.815V28.2364Z" fill="#0063DB"/><path d="M93.4806 8.11987H101.768C102.004 8.11987 102.2 8.21282 102.357 8.39872C102.541 8.55806 102.632 8.71739 102.632 8.87673C102.632 9.03607 102.619 9.16886 102.593 9.27508L93.5591 34.6896C93.2711 35.566 92.6819 36.0042 91.7916 36.0042H82.64C81.7759 36.0042 81.1999 35.6058 80.9118 34.8091L71.7995 9.27508C71.7733 9.16886 71.7603 9.03607 71.7603 8.87673C71.7603 8.71739 71.8388 8.55806 71.9959 8.39872C72.1792 8.21282 72.3887 8.11987 72.6244 8.11987H80.9118C81.3832 8.11987 81.7629 8.26593 82.0509 8.55806C82.3651 8.82362 82.5746 9.11574 82.6793 9.43442L87.1962 24.6911L91.7131 9.43442C91.9487 8.55805 92.5379 8.11987 93.4806 8.11987Z" fill="#0063DB"/><path d="M68.6743 16.286H61.3384V27.8381H68.6743C68.9715 27.8381 69.2282 27.9443 69.4443 28.1567C69.6605 28.3692 69.7686 28.6215 69.7686 28.9136V34.9286C69.7686 35.2208 69.6605 35.473 69.4443 35.6855C69.2282 35.8979 68.9715 36.0042 68.6743 36.0042H42.9786C42.6814 36.0042 42.4247 35.8979 42.2085 35.6855C41.9924 35.473 41.8843 35.2208 41.8843 34.9286V28.9136C41.8843 28.6215 41.9924 28.3692 42.2085 28.1567C42.4247 27.9443 42.6814 27.8381 42.9786 27.8381H50.3955V16.286H42.9786C42.6814 16.286 42.4247 16.1798 42.2085 15.9673C41.9924 15.7549 41.8843 15.5026 41.8843 15.2105V9.19541C41.8843 8.90329 41.9924 8.651 42.2085 8.43855C42.4247 8.2261 42.6814 8.11987 42.9786 8.11987H68.6743C68.9715 8.11987 69.2282 8.2261 69.4443 8.43855C69.6605 8.651 69.7686 8.90329 69.7686 9.19541V15.2105C69.7686 15.5026 69.6605 15.7549 69.4443 15.9673C69.2282 16.1798 68.9715 16.286 68.6743 16.286Z" fill="#0063DB"/><path d="M24.9577 27.8381H38.7968C39.0944 27.8381 39.3514 27.9443 39.5679 28.1567C39.7843 28.3692 39.8926 28.6215 39.8926 28.9136V34.9286C39.8926 35.2208 39.7843 35.473 39.5679 35.6855C39.3514 35.8979 39.0944 36.0042 38.7968 36.0042H15.0958C14.7982 36.0042 14.5411 35.8979 14.3247 35.6855C14.1082 35.473 14 35.2208 14 34.9286V9.19541C14 8.90329 14.1082 8.651 14.3247 8.43855C14.5411 8.2261 14.7982 8.11987 15.0958 8.11987H23.8619C24.1595 8.11987 24.4165 8.2261 24.633 8.43855C24.8494 8.651 24.9577 8.90329 24.9577 9.19541V27.8381Z" fill="#0063DB"/></svg>
+      </div>
+      <h1>Project Pricing</h1>
+      <p class="header-sub" id="config-summary">Expanded Game &nbsp;·&nbsp; 12 hrs/month &nbsp;·&nbsp; 12-month forecast</p>
+    </div>
+    <button class="btn-configure" onclick="openWizard()">Configure ↗</button>
+  </header>
+
+  <!-- ── Summary stats ── -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Setup Cost</div>
+      <div class="stat-value" id="s-setup">£118,200</div>
+      <div class="stat-sub">One-off &nbsp;·&nbsp; <span id="s-setup-margin">49.3%</span> margin</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Annual Maintenance</div>
+      <div class="stat-value" id="s-maint">£216,000</div>
+      <div class="stat-sub"><span id="s-maint-mo">£18,000</span>/month &nbsp;·&nbsp; <span id="s-maint-margin">85.3%</span> margin</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sponsorship Revenue</div>
+      <div class="stat-value" id="s-sp">£48,000</div>
+      <div class="stat-sub">LIVESYNC share (60%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Monetisation Revenue</div>
+      <div class="stat-value" id="s-mono">£16,800</div>
+      <div class="stat-sub">LIVESYNC share &nbsp;·&nbsp; <span id="s-mono-period">12</span>-month period</div>
+    </div>
+  </div>
+
+  <!-- ── B2B Setup ── -->
+  <div class="section">
+    <div class="section-header">
+      <h2>B2B Setup — One-off</h2>
+      <span class="section-note">Integration, project management, rights negotiations and game design</span>
+    </div>
+    <div class="readout-row">
+      <div><div class="readout-label">Client Price</div><div class="readout-value" id="r-setup-client">£118,200</div></div>
+      <div><div class="readout-label">Our Cost</div><div class="readout-value" id="r-setup-cost">£59,900</div></div>
+      <div><div class="readout-label">Gross Margin</div><div class="readout-value" id="r-setup-margin">49.3%</div></div>
+    </div>
+    <div class="accordion-trigger" onclick="toggleAcc('acc-setup',this)">
+      <span>Line-item breakdown</span><span class="accordion-arrow">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-setup">
+      <table>
+        <thead>
+          <tr><th>Line Item</th><th>Days</th><th>Client Price</th><th>Our Cost</th><th>Margin</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Integration with Club</td><td class="num">16</td><td class="num">£10,400</td><td class="num">£5,600</td><td class="num">46.2%</td></tr>
+          <tr><td>Project Management</td><td class="num">8</td><td class="num">£4,800</td><td class="num">£2,800</td><td class="num">41.7%</td></tr>
+          <tr><td>Rights Negotiations</td><td class="num">10</td><td class="num">£7,000</td><td class="num">£3,500</td><td class="num">50.0%</td></tr>
+          <tr><td id="r-game-lbl">Game Design (Expanded)</td><td class="num" id="r-game-days">120</td><td class="num" id="r-game-cp">£96,000</td><td class="num" id="r-game-cost">£48,000</td><td class="num">50.0%</td></tr>
+          <tr class="total-row"><td>Total</td><td>—</td><td class="num" id="r-setup-cp2">£118,200</td><td class="num" id="r-setup-cost2">£59,900</td><td class="num" id="r-setup-m2">49.3%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Maintenance ── -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Ongoing Maintenance — Monthly</h2>
+      <span class="section-note">£220/hr our cost &nbsp;·&nbsp; £1,500/hr client price &nbsp;·&nbsp; <span id="r-maint-hrs">12</span> hrs/month</span>
+    </div>
+    <div class="readout-row">
+      <div><div class="readout-label">Monthly (Client)</div><div class="readout-value" id="r-maint-mo">£18,000</div></div>
+      <div><div class="readout-label">Annual (Client)</div><div class="readout-value" id="r-maint-ann">£216,000</div></div>
+      <div><div class="readout-label">Gross Margin</div><div class="readout-value" id="r-maint-margin">85.3%</div></div>
+    </div>
+  </div>
+
+  <!-- ── Sponsorships ── -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Sponsorship Revenue</h2>
+      <span class="section-note">£40k per 1M views &nbsp;·&nbsp; 60% LIVESYNC / 20% club / 20% broadcaster</span>
+    </div>
+    <div class="readout-row">
+      <div><div class="readout-label">Gross Revenue</div><div class="readout-value" id="r-sp-gross">£80,000</div></div>
+      <div><div class="readout-label">LIVESYNC (60%)</div><div class="readout-value" id="r-sp-ls">£48,000</div></div>
+      <div><div class="readout-label">Client Share (20%)</div><div class="readout-value" id="r-sp-client">£16,000</div></div>
+    </div>
+    <div class="accordion-trigger" onclick="toggleAcc('acc-sp',this)">
+      <span>Revenue breakdown</span><span class="accordion-arrow">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-sp">
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Per Sponsorship</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gross Revenue</td><td class="num" id="r-sp-tbl-per">£20,000</td><td class="num" id="r-sp-tbl-gross">£80,000</td></tr>
+          <tr><td>To Client (20%)</td><td class="num" id="r-sp-tbl-cp">£4,000</td><td class="num" id="r-sp-tbl-ct">£16,000</td></tr>
+          <tr><td>To Broadcaster (20%)</td><td class="num" id="r-sp-tbl-bp">£4,000</td><td class="num" id="r-sp-tbl-bt">£16,000</td></tr>
+          <tr class="total-row"><td>To LIVESYNC (60%)</td><td class="num" id="r-sp-tbl-lp">£12,000</td><td class="num" id="r-sp-tbl-lt">£48,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Monetisation ── -->
+  <div class="section">
+    <div class="section-header">
+      <h2>In-Game Monetisation</h2>
+      <span class="section-note">In-app purchases &nbsp;·&nbsp; 70% LIVESYNC / 30% client &nbsp;·&nbsp; <span id="r-mono-period-lbl">12</span>-month forecast</span>
+    </div>
+    <div class="readout-row">
+      <div><div class="readout-label">Gross (Period)</div><div class="readout-value" id="r-mono-gross">£24,000</div></div>
+      <div><div class="readout-label">LIVESYNC (70%)</div><div class="readout-value" id="r-mono-ls">£16,800</div></div>
+      <div><div class="readout-label">Client Share (30%)</div><div class="readout-value" id="r-mono-client">£7,200</div></div>
+    </div>
+    <div class="accordion-trigger" onclick="toggleAcc('acc-mono',this)">
+      <span>Revenue breakdown</span><span class="accordion-arrow">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-mono">
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Monthly</th><th>Period Total</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Paying Users</td><td class="num" id="r-mono-paying">2,000</td><td class="num" id="r-mono-paying-p">24,000</td></tr>
+          <tr><td>Gross Revenue</td><td class="num" id="r-mono-gross-mo">£2,000</td><td class="num" id="r-mono-gross-p">£24,000</td></tr>
+          <tr><td>To Client (30%)</td><td class="num" id="r-mono-client-mo">£600</td><td class="num" id="r-mono-client-p">£7,200</td></tr>
+          <tr class="total-row"><td>To LIVESYNC (70%)</td><td class="num" id="r-mono-ls-mo">£1,400</td><td class="num" id="r-mono-ls-p">£16,800</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Consolidated ── -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Consolidated Summary</h2>
+      <span class="section-note">Setup is one-off &nbsp;·&nbsp; maintenance shown annually &nbsp;·&nbsp; revenue reflects forecast period</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Stream</th><th>Client Price</th><th>LIVESYNC Revenue</th><th>Margin</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>B2B Setup (one-off)</td><td class="num" id="c-setup-cp">£118,200</td><td class="num" id="c-setup-ls">£58,300</td><td class="num" id="c-setup-m">49.3%</td></tr>
+        <tr><td>Annual Maintenance</td><td class="num" id="c-maint-cp">£216,000</td><td class="num" id="c-maint-ls">£184,320</td><td class="num" id="c-maint-m">85.3%</td></tr>
+        <tr><td>Sponsorships</td><td class="num" id="c-sp-gross">£80,000</td><td class="num" id="c-sp-ls">£48,000</td><td class="num">60.0%</td></tr>
+        <tr><td>Monetisation (period)</td><td class="num" id="c-mono-gross">£24,000</td><td class="num" id="c-mono-ls">£16,800</td><td class="num">70.0%</td></tr>
+        <tr class="total-row"><td>Grand Total</td><td>—</td><td class="num" id="c-grand">£307,420</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <p class="caption">All figures pre-tax. Maintenance shown as annual.</p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════
+       WIZARD OVERLAY
+  ═══════════════════════════════════ -->
+  <div class="wizard-overlay" id="wizardOverlay" onclick="overlayClose(event)">
+    <div class="wizard-modal">
+      <button class="wizard-close" onclick="closeWizard()">✕</button>
+
+      <!-- Step indicator -->
+      <div class="step-indicator" style="margin-bottom:32px;">
+        <div class="step-col active" id="scol1"><div class="step-dot active" id="dot1">1</div><div class="step-lbl">Setup</div></div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-col" id="scol2"><div class="step-dot" id="dot2">2</div><div class="step-lbl">Assumptions</div></div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-col" id="scol3"><div class="step-dot" id="dot3">3</div><div class="step-lbl">Done</div></div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="step-pane active" id="pane1">
+        <h1 class="step-heading">Game experience type</h1>
+        <p class="step-sub">Choose the activation format. This determines your one-off setup investment.</p>
+        <div class="option-group">
+          <button class="option-card" data-game="1" onclick="selectOption(this,'game')">
+            <div class="option-radio"><div class="option-radio-dot"></div></div>
+            <div class="option-body">
+              <div class="option-name">Games Activation</div>
+              <div class="option-desc">Brand presence in an existing game. Fastest to market.</div>
+            </div>
+            <div class="option-price">£12,000</div>
+          </button>
+          <button class="option-card" data-game="2" onclick="selectOption(this,'game')">
+            <div class="option-radio"><div class="option-radio-dot"></div></div>
+            <div class="option-body">
+              <div class="option-name">Simple Custom Game</div>
+              <div class="option-desc">A bespoke game built around your brand. Moderate scope.</div>
+            </div>
+            <div class="option-price">£24,000</div>
+          </button>
+          <button class="option-card selected" data-game="3" onclick="selectOption(this,'game')">
+            <div class="option-radio"><div class="option-radio-dot"></div></div>
+            <div class="option-body">
+              <div class="option-name">Expanded Game</div>
+              <div class="option-desc">Complex, brand-specific game built for deep, long-term engagement.</div>
+            </div>
+            <div class="option-price">£96,000</div>
+          </button>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="goStep(2)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-pane" id="pane2">
+        <h1 class="step-heading">Revenue assumptions</h1>
+        <p class="step-sub">These drive the maintenance and revenue projections.</p>
+
+        <div class="slider-block">
+          <label>Hours streamed per month</label>
+          <input type="range" id="hoursSlider" min="2" max="40" step="1" value="12" oninput="syncVal('hoursSlider','hoursVal','n')">
+          <div class="slider-readout">
+            <div><span class="slider-val" id="hoursVal">12</span><span class="slider-unit">hrs / month</span></div>
+            <span class="slider-hint">Our cost £220/hr · Client £1,500/hr</span>
+          </div>
+        </div>
+
+        <div class="w-divider"></div>
+
+        <div class="slider-block">
+          <label>Sponsorships per year</label>
+          <input type="range" id="sponsorCountSlider" min="1" max="12" step="1" value="4" oninput="syncVal('sponsorCountSlider','sponsorCountVal','n')">
+          <div class="slider-readout">
+            <div><span class="slider-val" id="sponsorCountVal">4</span><span class="slider-unit">deals / year</span></div>
+            <span class="slider-hint">Each lasting ~6 weeks</span>
+          </div>
+        </div>
+
+        <div class="slider-block" style="margin-top:18px;">
+          <label>Predicted views per sponsorship</label>
+          <input type="range" id="sponsorViewsSlider" min="100000" max="2000000" step="50000" value="500000" oninput="syncVal('sponsorViewsSlider','sponsorViewsVal','fmt')">
+          <div class="slider-readout">
+            <div><span class="slider-val" id="sponsorViewsVal">500,000</span><span class="slider-unit">views</span></div>
+            <span class="slider-hint">Rate: £40k per 1M views</span>
+          </div>
+        </div>
+
+        <div class="w-divider"></div>
+
+        <div class="slider-block">
+          <label>Total game users</label>
+          <input type="range" id="usersSlider" min="10000" max="1000000" step="10000" value="100000" oninput="syncVal('usersSlider','usersVal','fmt')">
+          <div class="slider-readout">
+            <div><span class="slider-val" id="usersVal">100,000</span><span class="slider-unit">users</span></div>
+            <span class="slider-hint">Active users in the game</span>
+          </div>
+        </div>
+
+        <div class="slider-block" style="margin-top:18px;">
+          <label>Monetisation rate</label>
+          <input type="range" id="monoRateSlider" min="0.5" max="10" step="0.5" value="2" oninput="syncVal('monoRateSlider','monoRateVal','pct')">
+          <div class="slider-readout">
+            <div><span class="slider-val" id="monoRateVal">2.0</span><span class="slider-unit">% of users spend</span></div>
+            <span class="slider-hint">Industry typical: 1–5%</span>
+          </div>
+        </div>
+
+        <div class="slider-block" style="margin-top:18px;">
+          <label>Average spend per paying user</label>
+          <input type="range" id="avgSpendSlider" min="0.5" max="10" step="0.5" value="1" oninput="syncVal('avgSpendSlider','avgSpendVal','dec')">
+          <div class="slider-readout">
+            <div>£<span class="slider-val" id="avgSpendVal">1.00</span><span class="slider-unit">per user</span></div>
+            <span class="slider-hint">Conservative starting assumption</span>
+          </div>
+        </div>
+
+        <div class="slider-block" style="margin-top:18px;">
+          <label>Forecast period</label>
+          <input type="range" id="periodSlider" min="1" max="24" step="1" value="12" oninput="syncVal('periodSlider','periodVal','n')">
+          <div class="slider-readout">
+            <div><span class="slider-val" id="periodVal">12</span><span class="slider-unit">months</span></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="applyAndClose()">Apply →</button>
+          <button class="btn-ghost" onclick="goStep(1)">← Back</button>
+        </div>
+      </div>
+
+      <!-- Step 3: confirmation flash -->
+      <div class="step-pane" id="pane3">
+        <h1 class="step-heading">All set</h1>
+        <p class="step-sub">Your pricing page has been updated with the new configuration.</p>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="closeWizard()">View results →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const GAMES = {
+      1: { name:'Games Activation',  days:15,  cp:12000, cost:6000  },
+      2: { name:'Simple Custom Game',days:30,  cp:24000, cost:12000 },
+      3: { name:'Expanded Game',     days:120, cp:96000, cost:48000 },
+    };
+    const BASE_CP   = 10400 + 4800 + 7000;
+    const BASE_COST = 5600  + 2800 + 3500;
+
+    let gameId = 3;
+
+    const el   = id => document.getElementById(id);
+    const fmt  = n  => '£' + Math.round(n).toLocaleString('en-GB');
+    const fmtN = n  => Math.round(n).toLocaleString('en-GB');
+    const pct  = n  => (n * 100).toFixed(1) + '%';
+
+    /* ── Option cards ── */
+    function selectOption(btn, group) {
+      document.querySelectorAll(`.option-card[data-${group}]`).forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      if (group === 'game') gameId = parseInt(btn.dataset.game);
+    }
+
+    /* ── Wizard open/close ── */
+    function openWizard() {
+      el('wizardOverlay').classList.add('open');
+      goStep(1);
+    }
+    function closeWizard() {
+      el('wizardOverlay').classList.remove('open');
+    }
+    function overlayClose(e) {
+      if (e.target === el('wizardOverlay')) closeWizard();
+    }
+
+    /* ── Step navigation ── */
+    function goStep(n) {
+      document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+      el('pane' + n).classList.add('active');
+      [1,2,3].forEach(i => {
+        const col = el('scol' + i), dot = el('dot' + i), line = el('line' + i);
+        col.classList.remove('active','done'); dot.classList.remove('active','done');
+        if (i < n)      { col.classList.add('done'); dot.classList.add('done'); }
+        if (i === n)    { col.classList.add('active'); dot.classList.add('active'); }
+        if (line) line.classList.toggle('done', i < n);
+      });
+    }
+
+    /* ── Slider display sync ── */
+    function syncVal(sliderId, displayId, mode) {
+      const v = parseFloat(el(sliderId).value);
+      const d = el(displayId);
+      if      (mode === 'fmt') d.textContent = fmtN(v);
+      else if (mode === 'pct') d.textContent = v.toFixed(1);
+      else if (mode === 'dec') d.textContent = v.toFixed(2);
+      else                     d.textContent = v;
+    }
+
+    /* ── Apply wizard & update page ── */
+    function applyAndClose() {
+      calculate();
+      goStep(3);
+    }
+
+    /* ── Accordion ── */
+    function toggleAcc(bodyId, trigger) {
+      const open = el(bodyId).classList.toggle('open');
+      trigger.classList.toggle('open', open);
+    }
+
+    /* ── Main calculation ── */
+    function calculate() {
+      const g = GAMES[gameId];
+      const setupCP   = BASE_CP   + g.cp;
+      const setupCost = BASE_COST + g.cost;
+      const setupLS   = setupCP - setupCost;
+      const setupM    = setupLS / setupCP;
+
+      const hrs    = parseFloat(el('hoursSlider').value);
+      const mMoC   = hrs * 1500;
+      const mMoOC  = hrs * 220;
+      const mAnnC  = mMoC * 12;
+      const mAnnLS = (mMoC - mMoOC) * 12;
+      const mM     = mAnnLS / mAnnC;
+
+      const spN    = parseInt(el('sponsorCountSlider').value);
+      const spV    = parseInt(el('sponsorViewsSlider').value);
+      const spPer  = (spV / 1e6) * 40000;
+      const spGross= spPer * spN;
+      const spLS   = spGross * 0.6;
+      const spCl   = spGross * 0.2;
+
+      const users    = parseInt(el('usersSlider').value);
+      const rate     = parseFloat(el('monoRateSlider').value) / 100;
+      const avgSpend = parseFloat(el('avgSpendSlider').value);
+      const period   = parseInt(el('periodSlider').value);
+      const paying   = Math.round(users * rate);
+      const monoMo   = paying * avgSpend;
+      const monoGross= monoMo * period;
+      const monoLS   = monoGross * 0.7;
+      const monoCl   = monoGross * 0.3;
+      const grand    = setupLS + mAnnLS + spLS + monoLS;
+
+      // Config summary in header
+      el('config-summary').textContent = `${g.name}  ·  ${hrs} hrs/month  ·  ${period}-month forecast`;
+
+      // Stat cards
+      el('s-setup').textContent        = fmt(setupCP);
+      el('s-setup-margin').textContent = pct(setupM);
+      el('s-maint').textContent        = fmt(mAnnC);
+      el('s-maint-mo').textContent     = fmt(mMoC);
+      el('s-maint-margin').textContent = pct(mM);
+      el('s-sp').textContent           = fmt(spLS);
+      el('s-mono').textContent         = fmt(monoLS);
+      el('s-mono-period').textContent  = period;
+
+      // Setup
+      el('r-setup-client').textContent = fmt(setupCP);
+      el('r-setup-cost').textContent   = fmt(setupCost);
+      el('r-setup-margin').textContent = pct(setupM);
+      el('r-game-lbl').textContent     = 'Game Design (' + g.name + ')';
+      el('r-game-days').textContent    = g.days;
+      el('r-game-cp').textContent      = fmt(g.cp);
+      el('r-game-cost').textContent    = fmt(g.cost);
+      el('r-setup-cp2').textContent    = fmt(setupCP);
+      el('r-setup-cost2').textContent  = fmt(setupCost);
+      el('r-setup-m2').textContent     = pct(setupM);
+
+      // Maintenance
+      el('r-maint-hrs').textContent    = hrs;
+      el('r-maint-mo').textContent     = fmt(mMoC);
+      el('r-maint-ann').textContent    = fmt(mAnnC);
+      el('r-maint-margin').textContent = pct(mM);
+
+      // Sponsorships
+      el('r-sp-gross').textContent     = fmt(spGross);
+      el('r-sp-ls').textContent        = fmt(spLS);
+      el('r-sp-client').textContent    = fmt(spCl);
+      el('r-sp-tbl-per').textContent   = fmt(spPer);
+      el('r-sp-tbl-gross').textContent = fmt(spGross);
+      el('r-sp-tbl-cp').textContent    = fmt(spPer * 0.2);
+      el('r-sp-tbl-ct').textContent    = fmt(spCl);
+      el('r-sp-tbl-bp').textContent    = fmt(spPer * 0.2);
+      el('r-sp-tbl-bt').textContent    = fmt(spGross * 0.2);
+      el('r-sp-tbl-lp').textContent    = fmt(spPer * 0.6);
+      el('r-sp-tbl-lt').textContent    = fmt(spLS);
+
+      // Monetisation
+      el('r-mono-period-lbl').textContent = period;
+      el('r-mono-gross').textContent      = fmt(monoGross);
+      el('r-mono-ls').textContent         = fmt(monoLS);
+      el('r-mono-client').textContent     = fmt(monoCl);
+      el('r-mono-paying').textContent     = fmtN(paying);
+      el('r-mono-paying-p').textContent   = fmtN(paying * period);
+      el('r-mono-gross-mo').textContent   = fmt(monoMo);
+      el('r-mono-gross-p').textContent    = fmt(monoGross);
+      el('r-mono-client-mo').textContent  = fmt(monoMo * 0.3);
+      el('r-mono-client-p').textContent   = fmt(monoCl);
+      el('r-mono-ls-mo').textContent      = fmt(monoMo * 0.7);
+      el('r-mono-ls-p').textContent       = fmt(monoLS);
+
+      // Consolidated
+      el('c-setup-cp').textContent  = fmt(setupCP);
+      el('c-setup-ls').textContent  = fmt(setupLS);
+      el('c-setup-m').textContent   = pct(setupM);
+      el('c-maint-cp').textContent  = fmt(mAnnC);
+      el('c-maint-ls').textContent  = fmt(mAnnLS);
+      el('c-maint-m').textContent   = pct(mM);
+      el('c-sp-gross').textContent  = fmt(spGross);
+      el('c-sp-ls').textContent     = fmt(spLS);
+      el('c-mono-gross').textContent= fmt(monoGross);
+      el('c-mono-ls').textContent   = fmt(monoLS);
+      el('c-grand').textContent     = fmt(grand);
+    }
+
+    // Init with defaults
+    calculate();
+  </script>
+
+</body>
+</html>
