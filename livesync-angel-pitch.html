@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIVESYNC — Angel Pitch Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #0036db;
+      --white: #ffffff;
+      --black: #252525;
+      --red: #e52626;
+      --panel: #f4f6fb;
+      --border: #d4dae8;
+    }
+
+    body {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 400;
+      color: var(--black);
+      background: var(--white);
+      padding: clamp(24px, 5vw, 64px);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .top-bar {
+      background: var(--blue);
+      color: var(--white);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 10px clamp(24px, 5vw, 64px);
+      margin: -24px -24px 48px -24px;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.15;
+      margin-bottom: 0.3em;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--black);
+      opacity: 0.5;
+      margin-bottom: 0;
+    }
+
+    h2 {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--black);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      opacity: 0.4;
+      margin-bottom: 14px;
+    }
+
+    section { margin-top: clamp(36px, 5vw, 52px); }
+
+    ul.notes {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul.notes li {
+      font-size: clamp(0.88rem, 2vw, 0.95rem);
+      line-height: 1.65;
+      color: var(--black);
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+    }
+
+    ul.notes li:last-child { border-bottom: none; }
+
+    ul.notes li::before {
+      content: "—";
+      opacity: 0.25;
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .stat-label {
+      font-size: 0.58rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.4;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: 'Verdana Pro', Verdana, sans-serif;
+      font-size: clamp(1.3rem, 3vw, 1.8rem);
+      font-weight: 700;
+      color: var(--blue);
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .stat-sub {
+      font-size: 0.7rem;
+      opacity: 0.4;
+      line-height: 1.4;
+    }
+
+    .n { font-family: 'Verdana Pro', Verdana, sans-serif; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 4px;
+    }
+
+    thead tr { border-bottom: 2px solid var(--black); }
+
+    th {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700;
+      color: var(--black);
+      padding: 8px 12px 8px 0;
+      text-align: left;
+      background: transparent;
+    }
+
+    td {
+      padding: 9px 12px 9px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 0.88rem;
+    }
+
+    td.num { font-family: 'Verdana Pro', Verdana, sans-serif; }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border-left: 3px solid var(--blue);
+      padding: 12px 18px;
+      background: var(--panel);
+      border-radius: 0 12px 12px 0;
+      margin-top: 4px;
+    }
+
+    .callout p {
+      font-size: 0.95rem;
+      font-style: italic;
+      line-height: 1.6;
+      opacity: 0.8;
+    }
+
+    .flag {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+
+    .bottom-bar {
+      background: var(--blue);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px clamp(24px, 5vw, 64px);
+      margin: 52px -24px -24px -24px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    .accent-dot { color: var(--red); }
+
+    @media (max-width: 500px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">Angel Pitch Notes — Confidential</div>
+
+  <h1>LIVESYNC</h1>
+  <p class="subtitle">Pre-Seed ASA — Tomorrow's meeting</p>
+
+  <section>
+    <div class="callout">
+      <p>Live sport, inside gaming. Every moment on the pitch becomes a playable moment in the game. We're the Sky Sports of gaming — starting with Roblox, built to go anywhere.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Numbers that matter</h2>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">18–24s watching live</div>
+        <div class="stat-value">31%</div>
+        <div class="stat-sub">vs 75% of over-55s</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Young fans pirating monthly</div>
+        <div class="stat-value">65%</div>
+        <div class="stat-sub">18–34 football fans</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">UK kids who game</div>
+        <div class="stat-value">97%</div>
+        <div class="stat-sub">8–17 year olds (Ofcom)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">More sport watched</div>
+        <div class="stat-value">45%</div>
+        <div class="stat-sub">by fans who also game</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Traction</h2>
+    <ul class="notes">
+      <li>£25K Innovate UK grant — proof of concept built</li>
+      <li>Burnley FC — pilot proposal sent, first live deployment target</li>
+      <li>LOIs signed — Rezzil (data), LFG Studios (Roblox build), HTC Viverse</li>
+      <li>Sky Sports — discussions ongoing via Simon Benson</li>
+      <li>Arsenal and Chelsea — introductions made</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The round</h2>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Instrument</div>
+        <div class="stat-value" style="font-size: 1.3rem;">ASA</div>
+        <div class="stat-sub">Converts on next priced round</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Raising</div>
+        <div class="stat-value">£300K</div>
+        <div class="stat-sub">Angel minimum target</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Dilution</div>
+        <div class="stat-value">12%</div>
+        <div class="stat-sub">Target</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pre-money</div>
+        <div class="stat-value">£2.2M</div>
+        <div class="stat-sub">Post-money £2.5M</div>
+      </div>
+    </div>
+    <ul class="notes" style="margin-top: 20px;">
+      <li>Founders retain equal ~22% each post-round, 10% option pool</li>
+      <li>Funds: pipeline MVP, Burnley deployment, infrastructure, legal</li>
+      <li>Seed round planned 2027 following first paying customer</li>
+    </ul>
+    <div class="flag">⚠&nbsp; <strong>SEIS/EIS in progress</strong> — confirm exact status before the meeting. Angels will ask.</div>
+  </section>
+
+  <section>
+    <h2>Revenue per club per season</h2>
+    <table>
+      <thead>
+        <tr><th>Stream</th><th>Low</th><th>High</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>B2B Managed Service</td><td class="num">£80k</td><td class="num">£140k</td></tr>
+        <tr><td>Consumer Spend</td><td class="num">£4k</td><td class="num">£150k</td></tr>
+        <tr><td>Brand Sponsorship</td><td class="num">£80k</td><td class="num">£400k</td></tr>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td class="num"><strong>£164k</strong></td>
+          <td class="num"><strong>£690k</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <ul class="notes" style="margin-top: 16px;">
+      <li>At 6 experiences: <span class="n">£984K–£4.1M</span>. At 12: <span class="n">£2M–£8.3M</span>.</li>
+      <li>Brand sponsorship is the primary long-term driver — base rate <span class="n">£37k</span> per million views</li>
+      <li>Self-sustaining target: 2028</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The team</h2>
+    <ul class="notes">
+      <li><strong>Nicole Wan</strong> (MD) — Scaled a pre-seed music tech startup to £25M valuation. Worked with governments, consultancies and corporates in the Futures space at HACKMASTERS, including EY, Microsoft, 10 Downing Street, LEGO.</li>
+      <li><strong>James Ascroft</strong> (Product & Tech) — Immersive tech since 2018, mentored by Synthesia and Fabricant founders. Delivered for HTC, Home Office, Walmart.</li>
+      <li><strong>Will Sames</strong> (Commercial) — Motorsport background, youngest Aftersales Manager in the Lexus UK network. 3× Sairo revenue growth.</li>
+      <li><strong>Matty Hall</strong> (Marketing) — 200+ young people trained in AI and Roblox. Knows this audience from the inside.</li>
+      <li><strong>Simon Benson</strong> (Board Advisor) — Broadcast tech and live sports streaming. Opening Sky doors.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Before you walk in</h2>
+    <ul class="notes">
+      <li>Use the <strong>angel figures</strong> — £300K / 12% / £2.2M pre-money. Not the VC version (£1.8M / 18%).</li>
+      <li>Valuation will be challenged — an advisor suggested £1.7M–£2M is more typical at this stage. Know why we're comfortable at £2.2M.</li>
+      <li>Sony acquiring Beyond Sports validates the market and creates a speed gap we can exploit.</li>
+      <li>SEIS/EIS status — confirm before you go in.</li>
+    </ul>
+  </section>
+
+  <div class="bottom-bar">
+    <div><span class="accent-dot">·</span>&nbsp;LIVESYNC</div>
+    <span>Confidential — April 2026</span>
+  </div>
+
+</body>
+</html>
