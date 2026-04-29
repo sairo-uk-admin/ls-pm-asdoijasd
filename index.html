@@ -2112,6 +2112,115 @@ video {
   ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
+
+  /* ══ DARK MODE — restores Tailwind native dark palette ══
+     When data-theme="dark", we remove all the light overrides
+     so the app falls back to its native Tailwind dark colour scheme  */
+  [data-theme="dark"] body {
+    background: #030712;
+    color: #f9fafb;
+  }
+  [data-theme="dark"] .bg-gray-950  { background: #030712 !important; }
+  [data-theme="dark"] .bg-gray-900  { background: #111827 !important; }
+  [data-theme="dark"] .bg-gray-800  { background: #1f2937 !important; }
+  [data-theme="dark"] .bg-gray-800\/50,
+  [data-theme="dark"] .bg-gray-800\/60  { background: rgba(31,41,55,0.6) !important; }
+  [data-theme="dark"] .bg-gray-700  { background: #374151 !important; }
+  [data-theme="dark"] .bg-gray-600  { background: #4b5563 !important; }
+  [data-theme="dark"] .bg-gray-950\/60,
+  [data-theme="dark"] .bg-gray-950\/40 { background: rgba(3,7,18,0.6) !important; }
+
+  [data-theme="dark"] .border-gray-800 { border-color: #1f2937 !important; }
+  [data-theme="dark"] .border-gray-700 { border-color: #374151 !important; }
+  [data-theme="dark"] .border-gray-600 { border-color: #4b5563 !important; }
+  [data-theme="dark"] .divide-gray-800 > *+* { border-color: #1f2937 !important; }
+  [data-theme="dark"] .divide-gray-800\/60 > *+* { border-color: rgba(31,41,55,0.6) !important; }
+
+  [data-theme="dark"] .text-white  { color: #ffffff !important; }
+  [data-theme="dark"] .text-gray-100 { color: #f3f4f6 !important; }
+  [data-theme="dark"] .text-gray-200 { color: #e5e7eb !important; }
+  [data-theme="dark"] .text-gray-300 { color: #d1d5db !important; }
+  [data-theme="dark"] .text-gray-400 { color: #9ca3af !important; }
+  [data-theme="dark"] .text-gray-500 { color: #6b7280 !important; }
+  [data-theme="dark"] .text-gray-600 { color: #4b5563 !important; }
+  [data-theme="dark"] .text-gray-700 { color: #374151 !important; }
+  [data-theme="dark"] .text-indigo-400 { color: #818cf8 !important; }
+  [data-theme="dark"] .text-indigo-300 { color: #a5b4fc !important; }
+  [data-theme="dark"] .text-indigo-200 { color: #c7d2fe !important; }
+  [data-theme="dark"] .text-indigo-100 { color: #e0e7ff !important; }
+  [data-theme="dark"] .text-blue-400   { color: #60a5fa !important; }
+  [data-theme="dark"] .text-blue-300   { color: #93c5fd !important; }
+  [data-theme="dark"] .text-green-400  { color: #4ade80 !important; }
+  [data-theme="dark"] .text-yellow-400 { color: #facc15 !important; }
+  [data-theme="dark"] .text-yellow-300 { color: #fde047 !important; }
+  [data-theme="dark"] .text-yellow-500 { color: #eab308 !important; }
+  [data-theme="dark"] .text-sky-300    { color: #7dd3fc !important; }
+  [data-theme="dark"] .text-sky-400    { color: #38bdf8 !important; }
+
+  [data-theme="dark"] .hover\:bg-gray-800:hover     { background: #1f2937 !important; }
+  [data-theme="dark"] .hover\:bg-gray-700:hover     { background: #374151 !important; }
+  [data-theme="dark"] .hover\:bg-gray-600:hover     { background: #4b5563 !important; }
+  [data-theme="dark"] .hover\:bg-gray-800\/50:hover,
+  [data-theme="dark"] .hover\:bg-gray-800\/60:hover { background: rgba(31,41,55,0.5) !important; }
+  [data-theme="dark"] .hover\:bg-red-800:hover      { background: #991b1b !important; }
+  [data-theme="dark"] .hover\:text-white:hover      { color: #ffffff !important; }
+  [data-theme="dark"] .hover\:text-gray-300:hover   { color: #d1d5db !important; }
+  [data-theme="dark"] .hover\:text-gray-200:hover   { color: #e5e7eb !important; }
+  [data-theme="dark"] .hover\:text-indigo-300:hover { color: #a5b4fc !important; }
+  [data-theme="dark"] .hover\:text-red-400:hover    { color: #f87171 !important; }
+
+  [data-theme="dark"] input,
+  [data-theme="dark"] select,
+  [data-theme="dark"] textarea {
+    background: #1f2937 !important;
+    color: #e5e7eb !important;
+    border-color: #374151 !important;
+  }
+
+  [data-theme="dark"] .bg-indigo-600   { background: #4f46e5 !important; color: #fff !important; }
+  [data-theme="dark"] .bg-indigo-700   { background: #4338ca !important; }
+  [data-theme="dark"] .bg-indigo-900\/20 { background: rgba(49,46,129,0.2) !important; }
+  [data-theme="dark"] .bg-indigo-900\/30 { background: rgba(49,46,129,0.3) !important; }
+  [data-theme="dark"] .bg-indigo-900\/40 { background: rgba(49,46,129,0.4) !important; }
+  [data-theme="dark"] .bg-indigo-900\/50 { background: rgba(49,46,129,0.5) !important; }
+  [data-theme="dark"] .hover\:bg-indigo-500:hover,
+  [data-theme="dark"] .hover\:bg-indigo-600:hover  { background: #4338ca !important; }
+  [data-theme="dark"] .border-indigo-700 { border-color: #4338ca !important; }
+  [data-theme="dark"] .border-indigo-600 { border-color: #4f46e5 !important; }
+
+  [data-theme="dark"] .bg-yellow-900\/80 { background: rgba(120,53,15,0.8) !important; }
+  [data-theme="dark"] .bg-red-950\/20 { background: rgba(69,10,10,0.2) !important; }
+  [data-theme="dark"] .bg-red-950\/10 { background: rgba(69,10,10,0.1) !important; }
+  [data-theme="dark"] .bg-green-950\/20 { background: rgba(5,46,22,0.2) !important; }
+  [data-theme="dark"] .bg-amber-900\/30 { background: rgba(120,53,15,0.3) !important; }
+  [data-theme="dark"] .bg-amber-900\/20 { background: rgba(120,53,15,0.2) !important; }
+  [data-theme="dark"] .bg-indigo-950\/20,
+  [data-theme="dark"] .bg-indigo-950\/40 { background: rgba(30,27,75,0.2) !important; }
+  [data-theme="dark"] .bg-gray-950\/60,
+  [data-theme="dark"] .bg-gray-950\/40  { background: rgba(3,7,18,0.6) !important; }
+
+  [data-theme="dark"] .ls-navbar { background: #111827 !important; border-bottom-color: #1f2937 !important; }
+  [data-theme="dark"] .ls-navbar button.ls-nav-btn { color: #9ca3af !important; }
+  [data-theme="dark"] .ls-navbar button.ls-nav-btn:hover { background: #1f2937 !important; color: #f9fafb !important; }
+  [data-theme="dark"] .ls-navbar button.ls-nav-btn.active { background: #4f46e5 !important; color: #fff !important; }
+  [data-theme="dark"] .ls-content { background: #030712 !important; }
+
+  [data-theme="dark"] .bg-gray-900.border,
+  [data-theme="dark"] .bg-gray-900.rounded-xl,
+  [data-theme="dark"] .bg-gray-900.rounded-2xl { border-radius: 16px !important; border-color: #1f2937 !important; }
+
+  [data-theme="dark"] .sticky.bg-gray-950,
+  [data-theme="dark"] .bg-gray-950.rounded-xl,
+  [data-theme="dark"] .overflow-x-auto.overflow-y-auto.rounded-xl { background: #111827 !important; }
+
+  [data-theme="dark"] h1, [data-theme="dark"] h2,
+  [data-theme="dark"] h3, [data-theme="dark"] h4,
+  [data-theme="dark"] h5, [data-theme="dark"] h6 { color: #f9fafb !important; }
+
+  [data-theme="dark"] ::-webkit-scrollbar-track { background: #1f2937; }
+  [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #374151; }
+  [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
   /* ══ TAILWIND CLASS OVERRIDES — map dark classes to LIVESYNC light palette ══ */
 
   /* Backgrounds */
@@ -3337,7 +3446,7 @@ function SettingsPanel({workstreams,setWorkstreams,statuses,setStatuses,members,
   return(
     <div className="max-w-5xl">
       <div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Settings</h2><span className="text-xs text-gray-600 font-mono bg-gray-900 border border-gray-800 px-2.5 py-1 rounded-lg">v7</span></div>
-      <div className="flex gap-5 mb-6"><div className="w-36 flex-shrink-0 space-y-3">{STABS_GROUPS.map(g=><div key={g}><div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 px-2">{g}</div>{STABS_DATA.filter(t=>t.group===g).map(t=><button key={t.id} onClick={()=>{setSTab(t.id);cancelEdit();}} className={"w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors "+(sTab===t.id?"bg-indigo-600 text-white font-medium":"text-gray-400 hover:text-gray-200 hover:bg-gray-800")}>{t.label}</button>)}</div>)}</div><div className="flex-1 min-w-0">
+      <div className="flex gap-5 mb-6"><div className="w-36 flex-shrink-0 space-y-3">{STABS_GROUPS.map(g=><div key={g}><div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 px-2">{g}</div>{STABS_DATA.filter(t=>t.group===g).map(t=><button key={t.id} onClick={()=>{setSTab(t.id);cancelEdit();}} style={sTab===t.id?{display:"block",width:"100%",textAlign:"left",padding:"6px 10px",borderRadius:8,fontSize:"0.75rem",fontWeight:600,background:"#0036db",color:"#ffffff",border:"none",cursor:"pointer"}:{display:"block",width:"100%",textAlign:"left",padding:"6px 10px",borderRadius:8,fontSize:"0.75rem",fontWeight:400,background:"transparent",color:"#718096",border:"none",cursor:"pointer"}}>{t.label}</button>)}</div>)}</div><div className="flex-1 min-w-0">
 
       {sTab==="workstreams"&&<div>
         <div className="flex items-center justify-between mb-4"><p className="text-gray-400 text-sm">Edit names and colours. Double-click to edit.</p><div className="flex gap-2">{sEditMode?<><button onClick={()=>saveEdits(setWorkstreams)} className="text-xs bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg">Save All</button><button onClick={cancelEdit} className="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Cancel</button></>:<button onClick={()=>enterEdit(workstreams)} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">✏️ Edit All</button>}</div></div>
@@ -3492,7 +3601,10 @@ function SettingsPanel({workstreams,setWorkstreams,statuses,setStatuses,members,
           <div className="flex gap-2">
             {[["dark","🌙 Dark"],["light","☀ Light"]].map(([val,label])=>(
               <button key={val} onClick={()=>setTheme(val)}
-                className={"flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors "+(theme===val?"bg-indigo-600 border-indigo-500 text-white":"bg-gray-800 border-gray-700 text-gray-400 hover:text-white")}>
+                style={theme===val
+                  ?{flex:1,padding:"10px 0",borderRadius:12,fontSize:"0.875rem",fontWeight:600,border:"2px solid #4f46e5",background:"#4f46e5",color:"#ffffff",cursor:"pointer",transition:"all 0.15s"}
+                  :{flex:1,padding:"10px 0",borderRadius:12,fontSize:"0.875rem",fontWeight:500,border:"2px solid #d4dae8",background:"transparent",color:"#4a5568",cursor:"pointer",transition:"all 0.15s"}
+                }>
                 {label}
               </button>
             ))}
@@ -3874,7 +3986,7 @@ function App(){
   const gsClientRef=useRef(null);
   // Task creation defaults
   // ── Theme & colour scheme ─────────────────────────────────────────────────
-  const[theme,setTheme]=useState('light');
+  const[theme,setTheme]=useState(()=>{try{return localStorage.getItem('ls_theme')||'light';}catch{return 'light';}});
   useEffect(()=>{
     document.documentElement.setAttribute("data-theme",theme);
     localStorage.setItem("ls_theme",theme);
@@ -4349,13 +4461,62 @@ function App(){
         {view==="settings"&&<SettingsPanel workstreams={workstreams} setWorkstreams={setWorkstreams} statuses={statuses} setStatuses={setStatuses} members={members} setMembers={setMembers} epics={epics} setEpics={setEpics} activityLog={activityLog} gsUrl={gsUrl} setGsUrl={setGsUrl} gsConnected={gsConnected} gsError={gsError} onConnect={connectSheets} onPush={()=>setShowPushConfirm(true)} onPull={async()=>{setGsSaving(true);try{await pullFromSheets();}finally{setGsSaving(false);}}} taskDefaults={taskDefaults} setTaskDefaults={setTaskDefaults} initialTab={settingsTab} onTabChange={setSettingsTab} healthProps={{gsUrl,gsConnected,gsClientRef,lastSyncRef,syncConflict,gsSaving,tasks,contacts,decisions,activityLog}} theme={theme} setTheme={setTheme} agendaStructure={agendaStructure} setAgendaStructure={setAgendaStructure}/>}
       </div>
 
-      {showModal&&editTask&&<div className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-y-auto" style={{background:"rgba(0,0,0,0.75)"}}><div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full my-4" style={{maxWidth:520}}><h3 className="font-bold text-lg mb-4">{editTask.id?"Edit Task":"New Task"}</h3><div className="space-y-3"><div><label className="text-xs text-gray-400 block mb-1">Task Name</label><input value={editTask.name} onChange={e=>setEditTask(t=>Object.assign({},t,{name:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"/></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Workstream</label><input list="ws-list" value={editTask.workstream} onChange={e=>setEditTask(t=>Object.assign({},t,{workstream:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="N/A — or type to filter"/><datalist id="ws-list"><option value="N/A"/>{workstreams.map(w=><option key={w.id} value={w.name}/>)}</datalist></div><div><label className="text-xs text-gray-400 block mb-1">Epic</label><input list="epic-list" value={editTask.epic} onChange={e=>setEditTask(t=>Object.assign({},t,{epic:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="N/A — or type to filter"/><datalist id="epic-list"><option value="N/A"/>{epics.map((ep,i)=><option key={i} value={ep}/>)}</datalist></div></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Assignee</label><select value={editTask.assignee} onChange={e=>setEditTask(t=>Object.assign({},t,{assignee:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{members.map(m=><option key={m.id}>{m.name}</option>)}</select></div><div><label className="text-xs text-gray-400 block mb-1">Status</label><select value={editTask.status} onChange={e=>setEditTask(t=>Object.assign({},t,{status:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{statuses.filter(s=>s.name!=="Archive - Complete").map(s=><option key={s.id}>{s.name}</option>)}</select></div></div><div><label className="text-xs text-gray-400 block mb-2">Priority</label><div className="flex gap-2 flex-wrap">{PRIORITIES.map(p=>{const ps=PRIORITY_STYLE[p];const sel=(editTask.priority||"N/A")===p;return <button key={p} type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{priority:p}))} className={"px-3 py-1 rounded text-xs "+ps.badge+(sel?" ring-2 ring-white scale-105":" opacity-50 hover:opacity-80")}>{p}</button>;})}</div></div><div className="grid grid-cols-2 gap-3"><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Start</label><button type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{start:fmtDate(TODAY)}))} className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-900/30 hover:bg-indigo-900/50 px-2 py-0.5 rounded border border-indigo-800">Today</button></div><input type="date" value={editTask.start} onChange={e=>setEditTask(t=>Object.assign({},t,{start:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Deadline</label><span className="text-xs text-transparent select-none">Today</span></div><input type="date" value={editTask.deadline} onChange={e=>setEditTask(t=>Object.assign({},t,{deadline:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div></div><div><label className="text-xs text-gray-400 block mb-1">Notes</label><textarea value={editTask.notes} onChange={e=>setEditTask(t=>Object.assign({},t,{notes:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none h-16 resize-y min-h-[4rem]"/></div><div><div className="flex items-center justify-between mb-2"><label className="text-xs text-gray-400 uppercase tracking-wide">Checklist</label>{editTask.checklist.length>0&&<span className="text-xs text-gray-500">{editTask.checklist.filter(c=>c.done).length}/{editTask.checklist.length} — {Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100)}%</span>}</div>{editTask.checklist.length>0&&<div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mb-2"><div className="h-full bg-indigo-500 rounded-full" style={{width:(editTask.checklist.length?Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100):0)+"%"}}/></div>}<div className="space-y-1.5 mb-2">{editTask.checklist.map(c=><div key={c.id} className="flex items-center gap-2"><input type="checkbox" checked={c.done} onChange={e=>updCLItem(c.id,"done",e.target.checked)} className="rounded w-4 h-4 flex-shrink-0 accent-indigo-500"/><input value={c.text} onChange={e=>updCLItem(c.id,"text",e.target.value)} placeholder="Checklist item..." className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none"/><button onClick={()=>remCLItem(c.id)} className="text-gray-600 hover:text-red-400 text-xs px-1">X</button></div>)}</div><button onClick={addCLItem} className="text-xs text-indigo-400 hover:text-indigo-300">+ Add item</button></div></div><div className="flex justify-end gap-2 mt-5"><button onClick={()=>setShowModal(false)} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm">Cancel</button><button onClick={saveTask} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium">Save</button></div></div></div>}
+{showModal&&editTask&&<div className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-y-auto" style={{background:"rgba(0,0,0,0.75)"}}><div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full my-4" style={{maxWidth:520}}><h3 className="font-bold text-lg mb-4">{editTask.id?"Edit Task":"New Task"}</h3><div className="space-y-3"><div><label className="text-xs text-gray-400 block mb-1">Task Name</label><input value={editTask.name} onChange={e=>setEditTask(t=>Object.assign({},t,{name:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"/></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Workstream</label><Combobox value={editTask.workstream||""} onChange={v=>setEditTask(t=>Object.assign({},t,{workstream:v}))} options={["N/A",...workstreams.map(w=>w.name)]} placeholder="N/A — or type to filter" onCreateNew={v=>{setWorkstreams(ws=>[...ws,{id:uid("ws"),name:v,color:"bg-gray-700",text:"text-gray-100",dot:"bg-gray-500",border:"border-gray-500"}]);setEditTask(t=>Object.assign({},t,{workstream:v}));}}/></div><div><label className="text-xs text-gray-400 block mb-1">Epic</label><Combobox value={editTask.epic||""} onChange={v=>setEditTask(t=>Object.assign({},t,{epic:v}))} options={["N/A",...epics]} placeholder="N/A — or type to filter" onCreateNew={v=>{setEpics(ep=>[...ep,v]);setEditTask(t=>Object.assign({},t,{epic:v}));}}/></div></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Assignee</label><select value={editTask.assignee} onChange={e=>setEditTask(t=>Object.assign({},t,{assignee:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{members.map(m=><option key={m.id}>{m.name}</option>)}</select></div><div><label className="text-xs text-gray-400 block mb-1">Status</label><select value={editTask.status} onChange={e=>setEditTask(t=>Object.assign({},t,{status:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{statuses.filter(s=>s.name!=="Archive - Complete").map(s=><option key={s.id}>{s.name}</option>)}</select></div></div><div><label className="text-xs text-gray-400 block mb-2">Priority</label><div className="flex gap-2 flex-wrap">{PRIORITIES.map(p=>{const ps=PRIORITY_STYLE[p];const sel=(editTask.priority||"N/A")===p;return <button key={p} type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{priority:p}))} className={"px-3 py-1 rounded text-xs "+ps.badge+(sel?" ring-2 ring-white scale-105":" opacity-50 hover:opacity-80")}>{p}</button>;})}</div></div><div className="grid grid-cols-2 gap-3"><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Start</label><button type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{start:fmtDate(TODAY)}))} className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-900/30 hover:bg-indigo-900/50 px-2 py-0.5 rounded border border-indigo-800">Today</button></div><input type="date" value={editTask.start} onChange={e=>setEditTask(t=>Object.assign({},t,{start:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Deadline</label><span className="text-xs text-transparent select-none">Today</span></div><input type="date" value={editTask.deadline} onChange={e=>setEditTask(t=>Object.assign({},t,{deadline:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div></div><div><label className="text-xs text-gray-400 block mb-1">Notes</label><textarea value={editTask.notes} onChange={e=>setEditTask(t=>Object.assign({},t,{notes:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none h-16 resize-y min-h-[4rem]"/></div><div><div className="flex items-center justify-between mb-2"><label className="text-xs text-gray-400 uppercase tracking-wide">Checklist</label>{editTask.checklist.length>0&&<span className="text-xs text-gray-500">{editTask.checklist.filter(c=>c.done).length}/{editTask.checklist.length} — {Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100)}%</span>}</div>{editTask.checklist.length>0&&<div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mb-2"><div className="h-full bg-indigo-500 rounded-full" style={{width:(editTask.checklist.length?Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100):0)+"%"}}/></div>}<div className="space-y-1.5 mb-2">{editTask.checklist.map(c=><div key={c.id} className="flex items-center gap-2"><input type="checkbox" checked={c.done} onChange={e=>updCLItem(c.id,"done",e.target.checked)} className="rounded w-4 h-4 flex-shrink-0 accent-indigo-500"/><input value={c.text} onChange={e=>updCLItem(c.id,"text",e.target.value)} placeholder="Checklist item..." className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none"/><button onClick={()=>remCLItem(c.id)} className="text-gray-600 hover:text-red-400 text-xs px-1">X</button></div>)}</div><button onClick={addCLItem} className="text-xs text-indigo-400 hover:text-indigo-300">+ Add item</button></div></div><div className="flex justify-end gap-2 mt-5"><button onClick={()=>setShowModal(false)} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm">Cancel</button><button onClick={saveTask} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium">Save</button></div></div></div>}
+
     </div>
   );
 }
 
 
-// ── CONTACTS VIEW ──────────────────────────────────────────────────────────────
+// ── COMBOBOX — type-to-filter + click arrow to browse + create new ────────────
+function Combobox({value,onChange,options,placeholder,onCreateNew}){
+  const[open,setOpen]=useState(false);
+  const[query,setQuery]=useState("");
+  const ref=useRef();
+  // Sync query with value when value changes externally
+  useEffect(()=>{if(!open)setQuery("");},[open,value]);
+  useEffect(()=>{
+    function h(e){if(ref.current&&!ref.current.contains(e.target))setOpen(false);}
+    document.addEventListener("mousedown",h);
+    return()=>document.removeEventListener("mousedown",h);
+  },[]);
+  const filtered=options.filter(o=>o.toLowerCase().includes(query.toLowerCase()));
+  const showCreate=query.trim()&&!options.find(o=>o.toLowerCase()===query.trim().toLowerCase());
+  function select(opt){onChange(opt);setQuery("");setOpen(false);}
+  function handleInput(e){setQuery(e.target.value);onChange(e.target.value);setOpen(true);}
+  function handleCreate(){if(onCreateNew&&query.trim()){onCreateNew(query.trim());select(query.trim());}}
+  return(
+    <div ref={ref} className="relative">
+      <div className="flex items-center bg-gray-800 border border-gray-700 rounded-lg focus-within:border-indigo-500 overflow-hidden">
+        <input
+          value={open?query:value}
+          onChange={handleInput}
+          onFocus={()=>{setQuery("");setOpen(true);}}
+          placeholder={placeholder||"Type or select..."}
+          className="flex-1 bg-transparent px-3 py-2 text-sm text-gray-200 focus:outline-none"
+        />
+        <button
+          type="button"
+          onMouseDown={e=>{e.preventDefault();setOpen(o=>!o);if(!open)setQuery("");}}
+          className="px-2 py-2 text-gray-500 hover:text-gray-300 flex-shrink-0"
+        >▾</button>
+      </div>
+      {open&&<div className="absolute z-50 top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl py-1 max-h-52 overflow-y-auto">
+        {filtered.length===0&&!showCreate&&<div className="px-3 py-2 text-xs text-gray-600">No matches</div>}
+        {filtered.map(o=>(
+          <button key={o} type="button" onMouseDown={e=>{e.preventDefault();select(o);}} className={"w-full text-left px-3 py-1.5 text-sm hover:bg-gray-800 "+(value===o?"text-indigo-300 bg-gray-800/50":"text-gray-200")}>{o}</button>
+        ))}
+        {showCreate&&(
+          <button type="button" onMouseDown={e=>{e.preventDefault();handleCreate();}} className="w-full text-left px-3 py-1.5 text-sm text-indigo-400 hover:bg-gray-800 border-t border-gray-800 mt-1 pt-2">
+            + Create "{query.trim()}"
+          </button>
+        )}
+      </div>}
+    </div>
+  );
+}
+
+// ── CONTACTS VIEWW ──────────────────────────────────────────────────────────────
 const CONTACT_TYPES=["Investor","Customer","Partner","Advisor","Journalist","Recruit","Other"];
 const CONTACT_STAGES=["Identified","Intro Requested","Intro Made","First Call","DD","Term Sheet","Closed","Passed","N/A"];
 const CONTACT_WARMTH=["Hot","Warm","Cold"];
@@ -4405,6 +4566,18 @@ function ContactsView({contacts,setContacts,members,addLog}){
   const[tagInput,setTagInput]=useState("");
   const[detailTab,setDetailTab]=useState("profile");
   const[modalTab,setModalTab]=useState("profile");
+  // Pipeline status — single shared narrative, persisted to localStorage
+  const[pipelineStatus,setPipelineStatus]=useState(()=>{try{const s=localStorage.getItem("ls_pipeline_status");return s||"";}catch{return "";}});
+  const[pipelineSaved,setPipelineSaved]=useState(false);
+  const pipelineSaveTimer=useRef(null);
+  function handlePipelineStatus(val){
+    setPipelineStatus(val);
+    setPipelineSaved(false);
+    if(pipelineSaveTimer.current) clearTimeout(pipelineSaveTimer.current);
+    pipelineSaveTimer.current=setTimeout(()=>{
+      try{localStorage.setItem("ls_pipeline_status",val);setPipelineSaved(true);setTimeout(()=>setPipelineSaved(false),1500);}catch(e){}
+    },800);
+  }
 
   const inp="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500";
   const lbl="text-xs text-gray-400 block mb-1";
@@ -4656,7 +4829,26 @@ function ContactsView({contacts,setContacts,members,addLog}){
 
       {/* ── Kanban / pipeline view ── */}
       {cView==="kanban"&&(
-        <div className="overflow-x-auto pb-4">
+        <div>
+          {/* Pipeline status box */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-indigo-400"/>
+                <span className="text-sm font-semibold text-gray-200">Pipeline Status</span>
+                <span className="text-xs text-gray-500">— weekly narrative</span>
+              </div>
+              {pipelineSaved&&<span className="text-xs text-green-400">✓ Saved</span>}
+            </div>
+            <textarea
+              value={pipelineStatus}
+              onChange={e=>handlePipelineStatus(e.target.value)}
+              placeholder="Summarise where the investment pipeline stands this week — key conversations, next steps, blockers..."
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y"
+              style={{minHeight:90,lineHeight:"1.6"}}
+            />
+          </div>
+          <div className="overflow-x-auto pb-4">
           <div className="flex gap-3" style={{minWidth:"max-content"}}>
             {CONTACT_STAGES.filter(s=>s!=="N/A").map(stage=>{
               const col=filtered.filter(c=>c.stage===stage);
@@ -4692,6 +4884,7 @@ function ContactsView({contacts,setContacts,members,addLog}){
                 </div>
               );
             })}
+          </div>
           </div>
         </div>
       )}
