@@ -2362,14 +2362,15 @@ video {
     flex-shrink: 0;
   }
   .ls-topbar .ls-logo {
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
     display: flex;
     align-items: center;
-    gap: 4px;
+    height: 100%;
   }
-  .ls-topbar .ls-logo .ls-dot { color: #e52626; font-size: 1.4em; line-height: 1; }
+  .ls-topbar .ls-logo svg {
+    height: 22px;
+    width: auto;
+    display: block;
+  }
   .ls-topbar .ls-right { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; opacity: 0.85; }
 
   /* ── LIVESYNC nav bar ── */
@@ -2618,22 +2619,23 @@ function createSheetsClient(scriptUrl){
 
   // ── Schema definitions ─────────────────────────────────────────────────────
   // Tasks — each field maps to a column header in the Sheet
-  const TASK_COLS=["id","name","workstream","epic","assignee","status","priority","start","deadline","notes","checklist","lastReviewed","lastModified","modifiedBy"];
-  const TASK_HEADERS=["ID","Task Name","Workstream","Epic","Assignee","Status","Priority","Start Date","Deadline","Notes","Checklist (JSON)","Last Reviewed","Last Modified","Modified By"];
+  const TASK_COLS=["id","name","workstream","epic","assignee","status","priority","start","deadline","notes","checklist","lastReviewed","lastModified","modifiedBy","completionDate","archiveCompleteDate","meetingNotes"];
+  const TASK_HEADERS=["ID","Task Name","Workstream","Epic","Assignee","Status","Priority","Start Date","Deadline","Notes","Checklist (JSON)","Last Reviewed","Last Modified","Modified By","Completion Date","Archive Date","Meeting Notes (JSON)"];
 
-  const DECISION_COLS=["id","text","madeBy","workstream","epic","notes","date","attendees","lastModified"];
-  const DECISION_HEADERS=["ID","Decision","Made By","Workstream","Epic","Notes / Rationale","Date","Attendees","Last Modified"];
+  const DECISION_COLS=["id","text","madeBy","workstream","epic","notes","date","attendees","lastModified","meetingDate","meetingLabel"];
+  const DECISION_HEADERS=["ID","Decision","Made By","Workstream","Epic","Notes / Rationale","Date","Attendees","Last Modified","Meeting Date","Meeting Label"];
 
   const AUDIT_COLS=["id","type","description","date","time","meetingAttendees"];
   const AUDIT_HEADERS=["ID","Type","Description","Date","Time","Meeting Attendees"];
 
   // ── Shared constants ────────────────────────────────────────────────────────
-  const DATE_FIELDS=["start","deadline","lastReviewed"];
+  const DATE_FIELDS=["start","deadline","lastReviewed","completionDate","archiveCompleteDate"];
 
   // ── Serialise / deserialise tasks ─────────────────────────────────────────
   function taskToRow(t){
     return TASK_COLS.map(k=>{
       if(k==="checklist") return t.checklist&&t.checklist.length?JSON.stringify(t.checklist):"";
+      if(k==="meetingNotes") return t.meetingNotes&&t.meetingNotes.length?JSON.stringify(t.meetingNotes):"";
       if(DATE_FIELDS.includes(k)) return safeDate(t[k]);
       return t[k]!==undefined&&t[k]!==null?String(t[k]):"";
     });
@@ -2644,6 +2646,9 @@ function createSheetsClient(scriptUrl){
       const v=row[i]||"";
       if(k==="id") obj[k]=isNaN(Number(v))?v:Number(v);
       else if(k==="checklist"){
+        try{ obj[k]=v?JSON.parse(v):[]; }catch{ obj[k]=[]; }
+      }
+      else if(k==="meetingNotes"){
         try{ obj[k]=v?JSON.parse(v):[]; }catch{ obj[k]=[]; }
       }
       else if(DATE_FIELDS.includes(k)) obj[k]=safeDate(v);
@@ -2730,6 +2735,7 @@ function createSheetsClient(scriptUrl){
         initSheet("Config - Epics",""),
         initSheet("Emoji Log",["ID","Week","Member","Emoji","Date"]),
         initSheet("Config - Agenda",""),
+        initSheet("Config - WorkstreamHealth",""),
       ]);
     },
 
@@ -3125,7 +3131,7 @@ function MeetingSetupPanel({members,meetingAttendees,toggleAttendee,startMeeting
 }
 
 // ── MEETING PACK ──────────────────────────────────────────────────────────────
-function MeetingPack({tasks,getMember,getStatus,jumpToTask,members,agendaText,setAgendaText,agendaStructure,gsClientRef,gsConnected,emojiLog,setEmojiLog,meetingMode,meetingAttendees,toggleAttendee,startMeeting,endMeeting,meetingSchedule,setMeetingSchedule,agendaHistory,setAgendaHistory}){
+function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,members,agendaText,setAgendaText,agendaStructure,gsClientRef,gsConnected,emojiLog,setEmojiLog,meetingMode,meetingAttendees,toggleAttendee,startMeeting,endMeeting,meetingSchedule,setMeetingSchedule,agendaHistory,setAgendaHistory,workstreamHealth,setWorkstreamHealth,decisions,setDecisions,addLog}){
   const now=new Date();
   const todayStr=fmtDate(now);
 
@@ -3151,10 +3157,11 @@ function MeetingPack({tasks,getMember,getStatus,jumpToTask,members,agendaText,se
       cur.setDate(cur.getDate()+1);
     }
     // Add one-off meetings from schedule that aren't Thursdays and are in range
+    const todayMidnight=new Date(now);todayMidnight.setHours(0,0,0,0);
     meetingSchedule.forEach(m=>{
       if(!m.oneOff) return;
       const md=parseDate(m.date);
-      if(!md||md<now||md>end) return;
+      if(!md||md<todayMidnight||md>end) return;
       if(!result.find(r=>r.date===m.date)){
         result.push({date:m.date,label:m.label||"",isRegular:false,cancelled:m.cancelled||false,id:m.id});
       }
@@ -3195,13 +3202,14 @@ function MeetingPack({tasks,getMember,getStatus,jumpToTask,members,agendaText,se
         return [entry,...filtered].slice(0,52);
       });
     }
+    // Always save to localStorage as a backup; also save to Sheets when connected
+    try{localStorage.setItem("ls_agenda",JSON.stringify({text:agendaText,updatedAt:new Date().toISOString()}));}catch(e){}
     if(gsClientRef.current&&gsConnected){
       try{
         await gsClientRef.current.saveConfig("Agenda",{text:agendaText,updatedAt:new Date().toISOString()});
         setSaved(true);
-      }catch(err){console.error("Agenda save:",err);}
+      }catch(err){console.error("Agenda save:",err);setSaved(true);}
     } else {
-      localStorage.setItem("ls_agenda",JSON.stringify({text:agendaText,updatedAt:new Date().toISOString()}));
       setSaved(true);
     }
     setSaving(false);
@@ -3390,9 +3398,261 @@ function MeetingPack({tasks,getMember,getStatus,jumpToTask,members,agendaText,se
         </div>}
       </div>}
 
+      {/* ── WORKSTREAM STATUS — health + per-task discussion notes ───────── */}
+      <WorkstreamStatusSection
+        tasks={tasks} setTasks={setTasks} workstreams={workstreams} getMember={getMember}
+        workstreamHealth={workstreamHealth} setWorkstreamHealth={setWorkstreamHealth}
+        nextMeeting={nextMeeting} jumpToTask={jumpToTask}
+      />
+
+      {/* ── DECISIONS LOGGED THIS MEETING ─────────────────────────────────── */}
+      <MeetingDecisions
+        decisions={decisions} setDecisions={setDecisions}
+        members={members} workstreams={workstreams}
+        nextMeeting={nextMeeting} addLog={addLog}
+        meetingMode={meetingMode} meetingAttendees={meetingAttendees}
+      />
+
       <Sec title="Action Required" items={actionRequired} color="bg-red-500" empty="Nothing overdue or due before next meeting. 🎉"/>
       <Sec title="Complete — Requires Review" items={needsReview} color="bg-green-500" empty="None awaiting review."/>
       <Sec title="Not Reviewed Since Last Thursday" items={notReviewed} color="bg-yellow-400" empty="All reviewed recently."/>
+    </div>
+  );
+}
+
+// ── WorkstreamStatusSection ─────────────────────────────────────────────────
+function WorkstreamStatusSection({tasks,setTasks,workstreams,getMember,workstreamHealth,setWorkstreamHealth,nextMeeting,jumpToTask}){
+  const meetingDateKey=nextMeeting?nextMeeting.date:fmtDate(getNextThursday(new Date()));
+  // Group tasks per workstream and per "section" (Blocked / In Progress / Pending / Awaiting Review)
+  function sectionFor(status){
+    if(status==="Blocked") return "blocked";
+    if(status==="Ongoing"||status==="never-ending……") return "in_progress";
+    if(status==="Not Started"||status==="Scheduled - TBD upcoming") return "pending";
+    if(status==="Complete - RR") return "review";
+    return null; // hide Complete, Archive - Complete, Archived
+  }
+  const SECTION_META={
+    blocked:{label:"Blocked",icon:"🔴",color:"text-red-400"},
+    in_progress:{label:"In Progress",icon:"🔄",color:"text-blue-400"},
+    pending:{label:"Pending",icon:"⏳",color:"text-yellow-400"},
+    review:{label:"Awaiting Review",icon:"✓",color:"text-green-400"},
+  };
+  const HEALTH_META={
+    green:{label:"On track",dot:"#15803d",bg:"rgba(21,128,61,0.12)"},
+    amber:{label:"At risk",dot:"#b45309",bg:"rgba(180,83,9,0.12)"},
+    red:{label:"Blocked",dot:"#e52626",bg:"rgba(229,38,38,0.12)"},
+    "":{label:"Set status",dot:"#6b7280",bg:"transparent"},
+  };
+  return(
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4">
+      <div className="px-4 py-3 border-b border-gray-800 flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-cyan-400"/>
+        <span className="font-semibold text-gray-200">Workstream Status</span>
+        <span className="text-xs text-gray-500">— per-workstream update for {fmtMeetingShort(nextMeeting?nextMeeting.date:fmtDate(getNextThursday(new Date())))}</span>
+      </div>
+      <div className="divide-y divide-gray-800">
+        {workstreams.map(ws=>(
+          <WorkstreamPanel key={ws.id} ws={ws} tasks={tasks.filter(t=>t.workstream===ws.name)}
+            sectionFor={sectionFor} SECTION_META={SECTION_META} HEALTH_META={HEALTH_META}
+            health={workstreamHealth[ws.name]||{health:"",status:""}}
+            onHealthChange={v=>setWorkstreamHealth(h=>Object.assign({},h,{[ws.name]:Object.assign({},h[ws.name]||{},v,{updatedAt:new Date().toISOString()})}))}
+            getMember={getMember} jumpToTask={jumpToTask}
+            setTasks={setTasks} meetingDateKey={meetingDateKey}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkstreamPanel({ws,tasks,sectionFor,SECTION_META,HEALTH_META,health,onHealthChange,getMember,jumpToTask,setTasks,meetingDateKey}){
+  const[expanded,setExpanded]=useState(true);
+  const[editingHealth,setEditingHealth]=useState(false);
+  const[draftStatus,setDraftStatus]=useState(health.status||"");
+  const[draftHealth,setDraftHealth]=useState(health.health||"");
+  // Re-sync drafts when external health changes
+  useEffect(()=>{if(!editingHealth){setDraftStatus(health.status||"");setDraftHealth(health.health||"");}},[health.status,health.health,editingHealth]);
+  // Group tasks
+  const grouped={blocked:[],in_progress:[],pending:[],review:[]};
+  tasks.forEach(t=>{const s=sectionFor(t.status);if(s)grouped[s].push(t);});
+  const visibleCount=grouped.blocked.length+grouped.in_progress.length+grouped.pending.length+grouped.review.length;
+  const meta=HEALTH_META[health.health||""];
+  return(
+    <div className="px-4 py-3">
+      {/* Header row */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className={"w-3 h-3 rounded-full flex-shrink-0 "+ws.dot}/>
+        <span className="font-semibold text-gray-200 flex-1">{ws.name}</span>
+        <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg" style={{background:meta.bg,border:"1px solid "+(meta.dot==="#6b7280"?"#374151":meta.dot)}}>
+          <div className="w-2 h-2 rounded-full" style={{background:meta.dot}}/>
+          <span className="text-xs font-medium" style={{color:meta.dot==="#6b7280"?"#9ca3af":meta.dot}}>{meta.label}</span>
+        </div>
+        <button onClick={()=>setEditingHealth(e=>!e)} className="text-xs text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-gray-800/60">
+          {editingHealth?"Done":"Edit"}
+        </button>
+        <button onClick={()=>setExpanded(e=>!e)} className="text-gray-500 text-xs px-1">{expanded?"▲":"▼"}</button>
+      </div>
+
+      {/* Edit health/status */}
+      {editingHealth&&<div className="mb-3 bg-gray-800/40 border border-gray-700 rounded-xl p-3">
+        <p className="text-xs text-gray-500 mb-2">Health</p>
+        <div className="flex gap-2 mb-3">
+          {["green","amber","red",""].map(h=>{const m=HEALTH_META[h];return(
+            <button key={h||"none"} onClick={()=>{setDraftHealth(h);onHealthChange({health:h});}}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs"
+              style={{background:draftHealth===h?m.bg:"#1f2937",border:"1px solid "+(draftHealth===h?m.dot:"#374151"),color:draftHealth===h?(m.dot==="#6b7280"?"#9ca3af":m.dot):"#9ca3af"}}>
+              <div className="w-2 h-2 rounded-full" style={{background:m.dot}}/>{h?m.label:"None"}
+            </button>
+          );})}
+        </div>
+        <p className="text-xs text-gray-500 mb-2">Status note (this week)</p>
+        <textarea value={draftStatus} onChange={e=>{setDraftStatus(e.target.value);onHealthChange({status:e.target.value});}}
+          placeholder="Where is this workstream? What's blocking it? Auto-saves as you type."
+          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:60,lineHeight:"1.5"}}/>
+      </div>}
+      {!editingHealth&&health.status&&<p className="text-xs text-gray-400 italic mb-3 ml-6 leading-relaxed">"{health.status}"</p>}
+
+      {/* Task sections */}
+      {expanded&&<div className="space-y-3">
+        {visibleCount===0&&<p className="text-xs text-gray-600 ml-6">No active tasks in this workstream.</p>}
+        {["blocked","in_progress","pending","review"].map(secKey=>{
+          const items=grouped[secKey];if(items.length===0)return null;
+          const m=SECTION_META[secKey];
+          return(
+            <div key={secKey}>
+              <div className="flex items-center gap-2 mb-1.5 ml-1">
+                <span className="text-base">{m.icon}</span>
+                <span className={"text-xs font-semibold uppercase tracking-wide "+m.color}>{m.label}</span>
+                <span className="text-xs text-gray-600">{items.length}</span>
+              </div>
+              <div className="space-y-1.5 ml-6">
+                {items.map(t=><TaskRow key={t.id} t={t} getMember={getMember} jumpToTask={jumpToTask} setTasks={setTasks} meetingDateKey={meetingDateKey}/>)}
+              </div>
+            </div>
+          );
+        })}
+      </div>}
+    </div>
+  );
+}
+
+function TaskRow({t,getMember,jumpToTask,setTasks,meetingDateKey}){
+  const[showNote,setShowNote]=useState(false);
+  const meetingNotes=t.meetingNotes||[];
+  const noteForThisMeeting=meetingNotes.find(n=>n.date===meetingDateKey);
+  const latestNote=noteForThisMeeting||meetingNotes[0]||null;
+  const[draft,setDraft]=useState(noteForThisMeeting?noteForThisMeeting.text:"");
+  // Re-sync if the underlying task notes change externally
+  useEffect(()=>{if(!showNote)setDraft(noteForThisMeeting?noteForThisMeeting.text:"");},[noteForThisMeeting&&noteForThisMeeting.text,showNote]);
+  const mb=getMember(t.assignee);
+  function saveNote(text){
+    setDraft(text);
+    setTasks(ts=>ts.map(x=>{
+      if(x.id!==t.id)return x;
+      const existing=(x.meetingNotes||[]).filter(n=>n.date!==meetingDateKey);
+      const newNotes=text.trim()?[{date:meetingDateKey,text:text,savedAt:new Date().toISOString()},...existing]:existing;
+      return Object.assign({},x,{meetingNotes:newNotes,lastModified:new Date().toISOString()});
+    }));
+  }
+  return(
+    <div className="bg-gray-800/40 border border-gray-800 rounded-lg overflow-hidden">
+      <div className="flex items-center gap-2 px-3 py-2">
+        <span className="flex-1 text-sm text-gray-200 truncate cursor-pointer hover:text-white" onClick={()=>jumpToTask(t.id)}>{t.name}</span>
+        {mb&&<span className={"text-xs px-1.5 py-0.5 rounded "+mb.bg+" "+(mb.text||"text-white")} title={t.assignee}>{(t.assignee||"").split(" ").map(p=>p[0]).join("").slice(0,2)}</span>}
+        {t.deadline&&<span className="text-xs text-gray-500">{t.deadline.slice(5)}</span>}
+        <button onClick={()=>setShowNote(s=>!s)} title="Add meeting note" className={"text-xs px-2 py-0.5 rounded "+(latestNote?"bg-indigo-900/50 text-indigo-300":"bg-gray-700 text-gray-400 hover:text-indigo-300")}>
+          {meetingNotes.length>0?"💬 "+meetingNotes.length:"+ note"}
+        </button>
+      </div>
+      {latestNote&&!showNote&&<div className="px-3 pb-2 -mt-1 ml-1">
+        <p className="text-xs text-indigo-300/80 italic leading-relaxed">"{latestNote.text}" <span className="text-gray-600 not-italic">— {fmtMeetingShort(latestNote.date)}</span></p>
+      </div>}
+      {showNote&&<div className="px-3 pb-3 bg-gray-900/40 border-t border-gray-800 pt-2.5">
+        <textarea value={draft} onChange={e=>saveNote(e.target.value)}
+          placeholder="Discussion note for this meeting (auto-saves)..."
+          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:60,lineHeight:"1.5"}}/>
+        {meetingNotes.length>1&&<details className="mt-2"><summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-400">Past notes ({meetingNotes.length-(noteForThisMeeting?1:0)})</summary>
+          <div className="mt-1.5 space-y-1.5">{meetingNotes.filter(n=>n.date!==meetingDateKey).slice(0,5).map((n,i)=><div key={i} className="text-xs text-gray-500 italic border-l-2 border-gray-700 pl-2">"{n.text}" <span className="text-gray-600 not-italic">— {fmtMeetingShort(n.date)}</span></div>)}</div>
+        </details>}
+      </div>}
+    </div>
+  );
+}
+
+function fmtMeetingShort(ds){const d=parseDate(ds);if(!d)return ds;return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"});}
+
+// ── MeetingDecisions: log a decision in-meeting, tagged with meeting date ────
+function MeetingDecisions({decisions,setDecisions,members,workstreams,nextMeeting,addLog,meetingMode,meetingAttendees}){
+  const meetingDateKey=nextMeeting?nextMeeting.date:fmtDate(getNextThursday(new Date()));
+  const meetingLabel=nextMeeting?nextMeeting.label:"";
+  // Decisions tagged with this meeting's date
+  const decisionsThisMeeting=decisions.filter(d=>d.meetingDate===meetingDateKey);
+  const[showForm,setShowForm]=useState(false);
+  const[text,setText]=useState("");
+  const[madeBy,setMadeBy]=useState(members[0]?.name||"");
+  const[workstream,setWorkstream]=useState("");
+  const[notes,setNotes]=useState("");
+  function submit(){
+    if(!text.trim())return;
+    const dec={
+      id:uid("dec"),text:text.trim(),madeBy,workstream,epic:"",notes,
+      date:fmtDate(new Date()),
+      meetingDate:meetingDateKey,
+      meetingLabel:meetingLabel||"",
+      attendees:meetingMode?meetingAttendees:[]
+    };
+    setDecisions(d=>[dec,...d]);
+    addLog("decision","Decision (meeting): "+text.slice(0,60));
+    setText("");setNotes("");setWorkstream("");setShowForm(false);
+  }
+  function removeDecision(id){
+    if(!confirm("Remove this decision?"))return;
+    setDecisions(d=>d.filter(x=>x.id!==id));
+  }
+  return(
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4">
+      <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-amber-400"/>
+          <span className="font-semibold text-gray-200">Decisions This Meeting</span>
+          <span className="text-xs text-gray-500">{decisionsThisMeeting.length}</span>
+        </div>
+        <button onClick={()=>setShowForm(s=>!s)} className="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-white font-medium">
+          {showForm?"Cancel":"+ Log decision"}
+        </button>
+      </div>
+      {showForm&&<div className="p-4 border-b border-gray-800 space-y-3 bg-gray-950/40">
+        <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="What was decided?" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:60}}/>
+        <div className="grid grid-cols-2 gap-2">
+          <select value={madeBy} onChange={e=>setMadeBy(e.target.value)} className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-200 focus:outline-none">
+            {members.filter(m=>m.name!=="Unassigned").map(m=><option key={m.id}>{m.name}</option>)}
+          </select>
+          <select value={workstream} onChange={e=>setWorkstream(e.target.value)} className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-200 focus:outline-none">
+            <option value="">— Workstream —</option>
+            {workstreams.map(w=><option key={w.id}>{w.name}</option>)}
+          </select>
+        </div>
+        <textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Rationale (optional)" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:40}}/>
+        <div className="flex justify-end">
+          <button onClick={submit} disabled={!text.trim()} className="text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 px-4 py-1.5 rounded-lg text-white font-medium">Save</button>
+        </div>
+      </div>}
+      <div className="divide-y divide-gray-800">
+        {decisionsThisMeeting.length===0&&!showForm&&<p className="text-xs text-gray-600 px-4 py-3">No decisions logged for this meeting yet.</p>}
+        {decisionsThisMeeting.map(d=>(
+          <div key={d.id} className="px-4 py-3">
+            <div className="flex items-start gap-2">
+              <p className="text-sm text-gray-200 flex-1">{d.text}</p>
+              <button onClick={()=>removeDecision(d.id)} className="text-xs text-gray-600 hover:text-red-400">✕</button>
+            </div>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className="text-xs text-gray-500">{d.madeBy}</span>
+              {d.workstream&&<span className="text-xs text-indigo-400">{d.workstream}</span>}
+            </div>
+            {d.notes&&<p className="text-xs text-gray-500 italic mt-1">{d.notes}</p>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -3935,16 +4195,33 @@ const initTasks=[
 function App(){
   const[tasks,setTasksRaw]=useState(initTasks);
 
-  // ── Archive-Complete: stamp date if missing, auto-expire after 7 days ────────
+  // ── Lifecycle stamps: Complete gets completionDate, transitions to Archive after 7 days, then auto-expires after another 7 days ────
   useEffect(()=>{
     const today=fmtDate(new Date());
     const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);
     let changed=false;
     const updated=tasks.map(t=>{
-      if(t.status!=="Archive - Complete") return t;
-      if(!t.archiveCompleteDate){changed=true;return Object.assign({},t,{archiveCompleteDate:today});}
+      // 1. Stamp completionDate when newly Complete (if missing)
+      if(t.status==="Complete"&&!t.completionDate){
+        changed=true;
+        return Object.assign({},t,{completionDate:today});
+      }
+      // 2. Transition Complete → Archive - Complete after 7 days
+      if(t.status==="Complete"&&t.completionDate){
+        const d=parseDate(t.completionDate);
+        if(d&&d<cutoff){
+          changed=true;
+          return Object.assign({},t,{status:"Archive - Complete",archiveCompleteDate:today});
+        }
+      }
+      // 3. Stamp archiveCompleteDate if missing on Archive - Complete
+      if(t.status==="Archive - Complete"&&!t.archiveCompleteDate){
+        changed=true;
+        return Object.assign({},t,{archiveCompleteDate:today});
+      }
       return t;
     }).filter(t=>{
+      // 4. Hard-expire Archive - Complete after another 7 days
       if(t.status!=="Archive - Complete") return true;
       const d=parseDate(t.archiveCompleteDate);
       return !d||d>=cutoff;
@@ -3959,13 +4236,15 @@ function App(){
   const[decisions,setDecisions]=useState([]);
   const[contacts,setContacts]=useState([]);
   const[emojiLog,setEmojiLog]=useState([]);
-  const[agendaText,setAgendaText]=useState(()=>{try{if(new Date().getDay()===5)return "";const s=localStorage.getItem("ls_agenda");return s?JSON.parse(s).text||"":" ";}catch{return "";}});
-  const[agendaStructure,setAgendaStructure]=useState(()=>{try{const s=localStorage.getItem("ls_agenda_structure");return s?JSON.parse(s).text||"":" ";}catch{return "";}});
+  const[agendaText,setAgendaText]=useState(()=>{try{if(new Date().getDay()===5)return "";const s=localStorage.getItem("ls_agenda");return s?JSON.parse(s).text||"":"";}catch{return "";}});
+  const[agendaStructure,setAgendaStructure]=useState(()=>{try{const s=localStorage.getItem("ls_agenda_structure");return s?JSON.parse(s).text||"":"";}catch{return "";}});
   // Meeting schedule: array of {id, date (YYYY-MM-DD), label, cancelled}
   // agendaHistory: array of {date (YYYY-MM-DD), label, savedAt, text}
   const[meetingSchedule,setMeetingSchedule]=useState(()=>{try{const s=localStorage.getItem("ls_meeting_schedule");return s?JSON.parse(s):[];}catch{return [];}});
   const[agendaHistory,setAgendaHistory]=useState(()=>{try{const s=localStorage.getItem("ls_agenda_history");return s?JSON.parse(s):[];}catch{return [];}});
-  const prevContactsRef=useRef([]); // initialise to [] not null
+  // Workstream health: { [workstreamName]: { health: '', status: '', updatedAt: '' } } — synced to Sheets
+  const[workstreamHealth,setWorkstreamHealth]=useState(()=>{try{const s=localStorage.getItem("ls_ws_health");return s?JSON.parse(s):{};}catch{return {};}});
+  const prevContactsRef=useRef(null); // null = skip first render diff
   const[activityLog,setActivityLog]=useState([]);
   const[filterMember,setFilterMember]=useState("All");
   const[filterWS,setFilterWS]=useState("All");
@@ -4007,10 +4286,11 @@ function App(){
   useEffect(()=>{ if(gsUrl) localStorage.setItem("gs_url",gsUrl); },[gsUrl]);
 
   // Persist agenda (reset on Fridays)
-  useEffect(()=>{if(new Date().getDay()===5){setAgendaText("");localStorage.removeItem("ls_agenda");return;}if(agendaText&&agendaText!==" ")localStorage.setItem("ls_agenda",JSON.stringify({text:agendaText,updatedAt:new Date().toISOString()}));},[agendaText]);
-  useEffect(()=>{if(agendaStructure&&agendaStructure!==" ")localStorage.setItem("ls_agenda_structure",JSON.stringify({text:agendaStructure}));},[agendaStructure]);
+  useEffect(()=>{if(new Date().getDay()===5){setAgendaText("");localStorage.removeItem("ls_agenda");return;}if(agendaText)localStorage.setItem("ls_agenda",JSON.stringify({text:agendaText,updatedAt:new Date().toISOString()}));},[agendaText]);
+  useEffect(()=>{if(agendaStructure)localStorage.setItem("ls_agenda_structure",JSON.stringify({text:agendaStructure}));},[agendaStructure]);
   useEffect(()=>{localStorage.setItem("ls_meeting_schedule",JSON.stringify(meetingSchedule));},[meetingSchedule]);
   useEffect(()=>{localStorage.setItem("ls_agenda_history",JSON.stringify(agendaHistory));},[agendaHistory]);
+  useEffect(()=>{localStorage.setItem("ls_ws_health",JSON.stringify(workstreamHealth));scheduleConfigSave("WorkstreamHealth",workstreamHealth);},[workstreamHealth]);
 
   // Persist custom colours to localStorage
   useEffect(()=>{
@@ -4116,11 +4396,12 @@ function App(){
   useEffect(()=>{
     if(!gsClientRef.current||!gsConnected) return;
     const prev=prevContactsRef.current;
+    if(prev===null){ prevContactsRef.current=contacts; return; } // skip first render (loaded from Sheets)
     const client=gsClientRef.current;
-    const prevMap=new Map((prev||[]).map(c=>[c.id,c]));
+    const prevMap=new Map(prev.map(c=>[c.id,c]));
     const curMap=new Map(contacts.map(c=>[c.id,c]));
     const toUpsert=contacts.filter(c=>{const p=prevMap.get(c.id);return !p||JSON.stringify(p)!==JSON.stringify(c);});
-    const toDelete=[...(prev||[])].filter(c=>!curMap.has(c.id)).map(c=>c.id);
+    const toDelete=prev.filter(c=>!curMap.has(c.id)).map(c=>c.id);
     prevContactsRef.current=contacts;
     if(!toUpsert.length&&!toDelete.length) return;
     setGsSaving(true);
@@ -4177,7 +4458,7 @@ function App(){
     const client=clientOverride||gsClientRef.current;
     if(!client) throw new Error("Not connected to Google Sheets.");
 
-    const [remoteTasks,remoteDec,remoteContacts,remoteWS,remoteSt,remoteMb,remoteEp,remoteAl,remoteEmoji,remoteAgenda]=await Promise.all([
+    const [remoteTasks,remoteDec,remoteContacts,remoteWS,remoteSt,remoteMb,remoteEp,remoteAl,remoteEmoji,remoteAgenda,remoteWsHealth]=await Promise.all([
       client.loadTasks().catch(()=>null),
       client.loadDecisions().catch(()=>null),
       client.loadContacts().catch(()=>null),
@@ -4188,6 +4469,7 @@ function App(){
       client.loadAuditLog().catch(()=>null),
       client.loadEmojiLog().catch(()=>null),
       client.loadConfig("Agenda").catch(()=>null),
+      client.loadConfig("WorkstreamHealth").catch(()=>null),
     ]);
 
     // Tasks: use Sheets data if present, else seed Sheets with app state
@@ -4234,6 +4516,7 @@ function App(){
     setActivityLog(loadedAl);
     if(remoteEmoji&&remoteEmoji.length)setEmojiLog(remoteEmoji);
     if(remoteAgenda&&remoteAgenda.text&&new Date().getDay()!==5)setAgendaText(remoteAgenda.text);
+    if(remoteWsHealth&&typeof remoteWsHealth==="object")setWorkstreamHealth(remoteWsHealth);
 
     lastSyncRef.current=new Date().toISOString();
     setSyncConflict(false);
@@ -4258,6 +4541,7 @@ function App(){
       client.saveConfig("Statuses",statuses),
       client.saveConfig("Members",members),
       client.saveConfig("Epics",epics),
+      client.saveConfig("WorkstreamHealth",workstreamHealth),
     ]);
 
     // Update diff refs so the incremental effects don't re-fire immediately
@@ -4369,18 +4653,19 @@ function App(){
   function saveTask(){
     if(!editTask.name.trim())return;
     const isAC=editTask.status==="Archive - Complete";
-    const stamped=Object.assign({},editTask,{lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!editTask.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{});
+    const isComplete=editTask.status==="Complete";
+    const stamped=Object.assign({},editTask,{lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!editTask.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{},isComplete&&!editTask.completionDate?{completionDate:fmtDate(TODAY)}:{});
     if(stamped.id){const old=tasks.find(t=>t.id===stamped.id);setTasks(ts=>ts.map(t=>t.id===stamped.id?stamped:t));if(old&&old.status!==stamped.status){addLog("status_change","Status: "+stamped.name+" — "+old.status+" to "+stamped.status);if(stamped.status==="Complete"||stamped.status==="Complete - RR")addLog("task_complete","Completed: "+stamped.name);}else addLog("task_update","Edited: "+stamped.name);}
     else{setTasks(ts=>[...ts,Object.assign({},stamped,{id:uid("tsk")})]);addLog("task_add","Added: "+stamped.name);}
     setShowModal(false);
   }
-  function deleteTask(id){const t=tasks.find(x=>x.id===id);setTasks(ts=>ts.filter(t=>t.id!==id));if(t)addLog("task_update","Deleted: "+t.name);}
+  function deleteTask(id){if(!confirm("Delete this task? This cannot be undone."))return;const t=tasks.find(x=>x.id===id);setTasks(ts=>ts.filter(x=>x.id!==id));if(t)addLog("task_update","Deleted: "+t.name);}
   function jumpToTask(id){setView("list");setWorkSubTab("list");setFilterMember("All");setFilterWS("All");setFilterStatus("All");setHighlightTask(id);setTimeout(()=>{taskRefs.current[id]&&taskRefs.current[id].scrollIntoView({behavior:"smooth",block:"center"});},200);setTimeout(()=>setHighlightTask(null),2500);}
   function addCLItem(){setEditTask(t=>Object.assign({},t,{checklist:[...t.checklist,{id:uid("cl"),text:"",done:false}]}));}
   function updCLItem(id,field,val){setEditTask(t=>Object.assign({},t,{checklist:t.checklist.map(c=>c.id===id?Object.assign({},c,{[field]:val}):c)}));}
   function remCLItem(id){setEditTask(t=>Object.assign({},t,{checklist:t.checklist.filter(c=>c.id!==id)}));}
   function toggleCLDone(tid,cid){setTasks(ts=>ts.map(t=>t.id===tid?Object.assign({},t,{lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||"",checklist:t.checklist.map(c=>c.id===cid?Object.assign({},c,{done:!c.done}):c)}):t));}
-  function toggleTaskDone(id){const rrSt="Complete - RR";const nSt=statuses.find(s=>s.name==="Not Started")||statuses[0];const t=tasks.find(x=>x.id===id);if(t){const alreadyDone=t.status==="Complete"||t.status==="Complete - RR"||t.status==="Archived"||t.status==="Archive - Complete";const ns=alreadyDone?nSt.name:rrSt;setTasks(ts=>ts.map(x=>x.id===id?Object.assign({},x,{status:ns,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""}):x));addLog(!alreadyDone?"task_complete":"task_update",(!alreadyDone?"Marked for review: ":"Reopened: ")+t.name);}}
+  function toggleTaskDone(id){const rrSt="Complete - RR";const nSt=statuses.find(s=>s.name==="Not Started")||statuses[0];const t=tasks.find(x=>x.id===id);if(t){const alreadyDone=t.status==="Complete"||t.status==="Complete - RR"||t.status==="Archive - Complete";const ns=alreadyDone?nSt.name:rrSt;setTasks(ts=>ts.map(x=>x.id===id?Object.assign({},x,{status:ns,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""}):x));addLog(!alreadyDone?"task_complete":"task_update",(!alreadyDone?"Marked for review: ":"Reopened: ")+t.name);}}
   function toggleAttendee(n){setMeetingAttendees(a=>a.includes(n)?a.filter(x=>x!==n):[...a,n]);}
   function startMeeting(){setMeetingMode(true);addLog("meeting_start","Meeting started: "+meetingAttendees.join(", "));}
   function endMeeting(){addLog("meeting_end","Meeting ended: "+meetingAttendees.join(", "));setMeetingMode(false);setMeetingAttendees([]);}
@@ -4391,9 +4676,17 @@ function App(){
     <div className="min-h-screen text-gray-100 font-sans flex flex-col" style={{background:"var(--bg-page)",color:"var(--ls-black)"}}>
       {/* ── LIVESYNC Top Bar ── */}
       <div className="ls-topbar">
-        <div className="ls-logo">
-          <span className="ls-dot">·</span>LIVESYNC
-        </div>
+        <div className="ls-logo" dangerouslySetInnerHTML={{__html:`<svg width="256" height="38" viewBox="0 0 256 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="5" cy="5" r="5" transform="matrix(1 0 0 -1 1 11)" fill="#E52626"/>
+<path d="M237.01 20.351V26.7688C237.01 27.8652 237.373 28.7075 238.099 29.2958C238.851 29.8841 239.819 30.1783 241.002 30.1783C242.211 30.1783 243.085 29.9911 243.622 29.6167C244.16 29.2423 244.603 28.6941 244.953 27.9721C245.329 27.2501 245.813 26.8891 246.404 26.8891H255.113C255.355 26.8891 255.557 26.9827 255.718 27.1699C255.906 27.3304 256 27.5309 256 27.7716C256 30.2585 254.817 32.5315 252.452 34.5905C251.269 35.6067 249.697 36.4356 247.735 37.0774C245.773 37.6925 243.461 38 240.8 38C238.139 38 235.706 37.5989 233.502 36.7966C231.325 35.9677 229.551 34.6306 228.18 32.7855C226.809 30.9136 226.124 28.6273 226.124 25.9265V21.1933C226.124 18.4925 226.809 16.2061 228.18 14.3343C230.761 10.858 235.075 9.11981 241.123 9.11981C243.568 9.11981 245.773 9.4407 247.735 10.0825C249.697 10.6975 251.269 11.5131 252.452 12.5293C254.817 14.5883 256 16.8613 256 19.3482C256 19.5889 255.906 19.8028 255.718 19.99C255.557 20.1504 255.355 20.2307 255.113 20.2307H246.404C245.813 20.2307 245.329 19.8697 244.953 19.1476C244.603 18.4256 244.16 17.8775 243.622 17.5031C243.085 17.1287 242.211 16.9415 241.002 16.9415C239.819 16.9415 238.851 17.2357 238.099 17.824C237.373 18.4123 237.01 19.2546 237.01 20.351Z" fill="white"/>
+<path d="M214.788 9.11981H222.078C222.366 9.11981 222.614 9.22604 222.823 9.43849C223.032 9.65094 223.136 9.90323 223.136 10.1953V35.9286C223.136 36.2207 223.032 36.473 222.823 36.6854C222.614 36.8979 222.366 37.0041 222.078 37.0041H215.768C215.14 37.0041 214.618 36.7253 214.2 36.1676L205.655 25.0935V35.9286C205.655 36.2207 205.551 36.473 205.342 36.6854C205.132 36.8979 204.884 37.0041 204.597 37.0041H197.306C197.019 37.0041 196.771 36.8979 196.562 36.6854C196.353 36.473 196.248 36.2207 196.248 35.9286V10.1953C196.248 9.90323 196.353 9.65094 196.562 9.43849C196.771 9.22604 197.019 9.11981 197.306 9.11981H203.656C204.283 9.11981 204.793 9.38538 205.185 9.91651L213.729 21.9068V10.1953C213.729 9.90323 213.834 9.65094 214.043 9.43849C214.252 9.22604 214.5 9.11981 214.788 9.11981Z" fill="white"/>
+<path d="M185.066 9.11981H193.381C193.62 9.11981 193.819 9.21276 193.978 9.39866C194.163 9.55799 194.256 9.73061 194.256 9.91651C194.256 10.1024 194.216 10.275 194.137 10.4344L184.111 27.0454V35.9286C184.111 36.2207 184.005 36.473 183.793 36.6854C183.581 36.8979 183.329 37.0041 183.037 37.0041H174.563C174.272 37.0041 174.02 36.8979 173.808 36.6854C173.595 36.473 173.489 36.2207 173.489 35.9286V27.0454L163.504 10.4344C163.424 10.275 163.384 10.1024 163.384 9.91651C163.384 9.73061 163.464 9.55799 163.623 9.39866C163.809 9.21276 164.021 9.11981 164.26 9.11981H172.654C173.396 9.11981 173.94 9.42521 174.285 10.036L178.78 17.9233L183.395 10.1157C183.793 9.45177 184.35 9.11981 185.066 9.11981Z" fill="white"/>
+<path d="M151.247 19.7092C155.627 20.2173 158.738 21.1666 160.58 22.5571C162.449 23.9209 163.384 25.9799 163.384 28.7343C163.384 31.4886 162.036 33.7214 159.338 35.4329C156.641 37.1443 153.063 38 148.604 38C144.144 38 140.672 37.1844 138.189 35.5532C135.732 33.8952 134.504 31.8629 134.504 29.4563C134.504 28.868 134.811 28.5738 135.425 28.5738H143.637C144.197 28.5738 144.651 28.7476 144.999 29.0953C145.746 29.8173 147.041 30.1783 148.884 30.1783C151.421 30.1783 152.689 29.7905 152.689 29.015C152.689 28.5337 152.289 28.1593 151.488 27.8919C150.686 27.5978 149.098 27.317 146.721 27.0496C139.164 26.1404 135.385 23.239 135.385 18.3454C135.385 15.5911 136.6 13.3716 139.03 11.6869C141.46 9.97552 144.705 9.11981 148.764 9.11981C152.849 9.11981 156.147 10.0156 158.657 11.8073C161.168 13.5722 162.423 15.444 162.423 17.4229C162.423 17.6903 162.329 17.9042 162.142 18.0646C161.982 18.2251 161.755 18.3053 161.461 18.3053H152.849C152.369 18.3053 151.955 18.1449 151.608 17.824C150.967 17.2357 150.005 16.9415 148.724 16.9415C146.935 16.9415 146.04 17.3159 146.04 18.0646C146.04 18.4658 146.387 18.7866 147.081 19.0273C147.776 19.2412 149.164 19.4685 151.247 19.7092Z" fill="white"/>
+<path d="M115.815 29.2363H131.454C131.742 29.2363 131.99 29.3426 132.199 29.555C132.408 29.7675 132.512 30.0198 132.512 30.3119V35.9286C132.512 36.2207 132.408 36.473 132.199 36.6854C131.99 36.8979 131.742 37.0041 131.454 37.0041H106.682C106.395 37.0041 106.147 36.8979 105.938 36.6854C105.729 36.473 105.624 36.2207 105.624 35.9286V10.1953C105.624 9.90323 105.729 9.65094 105.938 9.43849C106.147 9.22604 106.395 9.11981 106.682 9.11981H131.062C131.35 9.11981 131.598 9.22604 131.807 9.43849C132.016 9.65094 132.12 9.90323 132.12 10.1953V15.812C132.12 16.1042 132.016 16.3565 131.807 16.5689C131.598 16.7814 131.35 16.8876 131.062 16.8876H115.815V19.3972H128.906C129.194 19.3972 129.442 19.5034 129.651 19.7158C129.86 19.9283 129.965 20.1806 129.965 20.4727V25.6512C129.965 25.9433 129.86 26.1956 129.651 26.4081C129.442 26.6205 129.194 26.7268 128.906 26.7268H115.815V29.2363Z" fill="white"/>
+<path d="M94.4806 9.11981H102.768C103.004 9.11981 103.2 9.21276 103.357 9.39866C103.541 9.55799 103.632 9.71733 103.632 9.87667C103.632 10.036 103.619 10.1688 103.593 10.275L94.5591 35.6896C94.2711 36.5659 93.6819 37.0041 92.7916 37.0041H83.64C82.7759 37.0041 82.1999 36.6058 81.9118 35.8091L72.7995 10.275C72.7733 10.1688 72.7603 10.036 72.7603 9.87667C72.7603 9.71733 72.8388 9.55799 72.9959 9.39866C73.1792 9.21276 73.3887 9.11981 73.6244 9.11981H81.9118C82.3832 9.11981 82.7629 9.26587 83.0509 9.558C83.3651 9.82356 83.5746 10.1157 83.6793 10.4344L88.1962 25.6911L92.7131 10.4344C92.9487 9.55799 93.5379 9.11981 94.4806 9.11981Z" fill="white"/>
+<path d="M69.6743 17.2859H62.3384V28.838H69.6743C69.9715 28.838 70.2282 28.9442 70.4443 29.1567C70.6605 29.3691 70.7686 29.6214 70.7686 29.9135V35.9286C70.7686 36.2207 70.6605 36.473 70.4443 36.6854C70.2282 36.8979 69.9715 37.0041 69.6743 37.0041H43.9786C43.6814 37.0041 43.4247 36.8979 43.2085 36.6854C42.9924 36.473 42.8843 36.2207 42.8843 35.9286V29.9135C42.8843 29.6214 42.9924 29.3691 43.2085 29.1567C43.4247 28.9442 43.6814 28.838 43.9786 28.838H51.3955V17.2859H43.9786C43.6814 17.2859 43.4247 17.1797 43.2085 16.9673C42.9924 16.7548 42.8843 16.5025 42.8843 16.2104V10.1953C42.8843 9.90323 42.9924 9.65094 43.2085 9.43849C43.4247 9.22604 43.6814 9.11981 43.9786 9.11981H69.6743C69.9715 9.11981 70.2282 9.22604 70.4443 9.43849C70.6605 9.65094 70.7686 9.90323 70.7686 10.1953V16.2104C70.7686 16.5025 70.6605 16.7548 70.4443 16.9673C70.2282 17.1797 69.9715 17.2859 69.6743 17.2859Z" fill="white"/>
+<path d="M25.9577 28.838H39.7968C40.0944 28.838 40.3514 28.9442 40.5679 29.1567C40.7843 29.3691 40.8926 29.6214 40.8926 29.9135V35.9286C40.8926 36.2207 40.7843 36.473 40.5679 36.6854C40.3514 36.8979 40.0944 37.0041 39.7968 37.0041H16.0958C15.7982 37.0041 15.5411 36.8979 15.3247 36.6854C15.1082 36.473 15 36.2207 15 35.9286V10.1953C15 9.90323 15.1082 9.65094 15.3247 9.43849C15.5411 9.22604 15.7982 9.11981 16.0958 9.11981H24.8619C25.1595 9.11981 25.4165 9.22604 25.633 9.43849C25.8494 9.65094 25.9577 9.90323 25.9577 10.1953V28.838Z" fill="white"/>
+</svg>`}} style={{height:24,display:"flex",alignItems:"center"}}/>
         <div className="ls-right">
           {gsConnected&&<span style={gsSaving?{color:"#fde68a"}:syncConflict?{color:"#fde68a"}:{color:"rgba(255,255,255,0.75)"}}>{gsSaving?"Saving…":syncConflict?"⚠ Out of sync":"✓ Synced"}</span>}
           {meetingMode&&<span style={{color:"#fca5a5",animation:"pulse 2s infinite"}}>🔴 Meeting Live</span>}
@@ -4445,15 +4738,15 @@ function App(){
 
       <div className="ls-content">
         {view==="dashboard"&&<Dashboard tasks={tasks} workstreams={workstreams} members={members} statuses={statuses} jumpToTask={jumpToTask} openEdit={openEdit} getMember={getMember} getWS={getWS} getStatus={getStatus} activityLog={activityLog}/>}
-        {view==="meeting-pack"&&<MeetingPack tasks={tasks} getMember={getMember} getStatus={getStatus} jumpToTask={jumpToTask} members={members} agendaText={agendaText} setAgendaText={setAgendaText} agendaStructure={agendaStructure} gsClientRef={gsClientRef} gsConnected={gsConnected} emojiLog={emojiLog} setEmojiLog={setEmojiLog} meetingMode={meetingMode} meetingAttendees={meetingAttendees} toggleAttendee={toggleAttendee} startMeeting={startMeeting} endMeeting={endMeeting} meetingSchedule={meetingSchedule} setMeetingSchedule={setMeetingSchedule} agendaHistory={agendaHistory} setAgendaHistory={setAgendaHistory}/>}
+        {view==="meeting-pack"&&<MeetingPack tasks={tasks} setTasks={setTasks} workstreams={workstreams} getMember={getMember} getStatus={getStatus} jumpToTask={jumpToTask} members={members} agendaText={agendaText} setAgendaText={setAgendaText} agendaStructure={agendaStructure} gsClientRef={gsClientRef} gsConnected={gsConnected} emojiLog={emojiLog} setEmojiLog={setEmojiLog} meetingMode={meetingMode} meetingAttendees={meetingAttendees} toggleAttendee={toggleAttendee} startMeeting={startMeeting} endMeeting={endMeeting} meetingSchedule={meetingSchedule} setMeetingSchedule={setMeetingSchedule} agendaHistory={agendaHistory} setAgendaHistory={setAgendaHistory} workstreamHealth={workstreamHealth} setWorkstreamHealth={setWorkstreamHealth} decisions={decisions} setDecisions={setDecisions} addLog={addLog}/>}
 
         {(view==="work"||view==="list"||view==="kanban"||view==="timeline"||view==="people")&&<div>
           <div className="flex items-center gap-1 mb-5 border-b border-gray-800 pb-0">
             {WORK_SUBTABS.map(s=><button key={s.id} onClick={()=>{setView(s.id);setWorkSubTab(s.id);}} className={"px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors "+(view===s.id?"border-indigo-500 text-white":"border-transparent text-gray-500 hover:text-gray-300")}>{s.label}</button>)}
           </div>
           {workSubTab==="timeline"&&<div><div className="flex items-center justify-between mb-4 flex-wrap gap-2"><h2 className="text-2xl font-bold">Timeline</h2><div className="flex gap-2 flex-wrap items-center"><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-xs font-medium">+ New Task</button>{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div></div><Timeline tasks={tasks} setTasks={setTasks} workstreams={workstreams} members={members} filterMember={filterMember}/></div>}
-        {workSubTab==="kanban"&&<div><div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Kanban</h2><div className="flex items-center gap-2"><select value={listSort.col==="priority"&&listSort.dir==="asc"?"priority_asc":listSort.col==="deadline"?"deadline_asc":listSort.col==="name"?"name_asc":"priority_asc"} onChange={e=>{const v=e.target.value;const[col,dir]=v.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option></select><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium">+ New Task</button></div></div><div className="flex gap-2 mb-4 flex-wrap">{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div><div style={{overflowX:"auto",overflowY:"visible",paddingBottom:"1rem"}}><div style={{display:"flex",gap:"12px",minWidth:"max-content",paddingBottom:"2px"}}>{statuses.map(st=>{const col=(()=>{  const base=tasks.filter(t=>t.status===st.name&&(filterMember==="All"||t.assignee===filterMember));  const{col:sc,dir}=listSort;const d=dir==="asc"?1:-1;  return [...base].sort((a,b)=>{    if(sc==="priority") return d*((PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));    if(sc==="name") return d*(a.name||"").localeCompare(b.name||"");    if(sc==="deadline"){const da=a.deadline||"9999",db=b.deadline||"9999";return d*(da.localeCompare(db));}    return 0;  });})();return <div key={st.id} className={"flex-shrink-0 w-60 border-t-2 "+st.board+" bg-gray-900 rounded-xl p-3"} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(dragTask){const isAC=st.name==="Archive - Complete";setTasks(ts=>ts.map(t=>t.id===dragTask?Object.assign({},t,{status:st.name},isAC&&!t.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{}):t));addLog("status_change","Moved to "+st.name);}setDragTask(null);}}><div className="flex items-center justify-between mb-3"><span className={"text-xs font-semibold px-2 py-0.5 rounded "+st.badge}>{st.name}</span><span className="text-xs bg-gray-800 rounded-full px-2 py-0.5 text-gray-400">{col.length}</span></div><div className="space-y-2">{col.map(t=>{const ws=getWS(t.workstream),prog=taskProgress(t),mb=getMember(t.assignee),pri=PRIORITY_STYLE[t.priority||"N/A"];return <div key={t.id} draggable onDragStart={()=>setDragTask(t.id)} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 cursor-grab hover:bg-gray-700" onClick={()=>openEdit(t)}><div className={"h-1 w-full "+ws.dot} style={wsStyle(ws)}/><div className="p-3"><div className="flex items-start gap-2 mb-1">{t.priority&&t.priority!=="N/A"&&<span className={"text-xs px-1.5 py-0.5 rounded flex-shrink-0 "+pri.badge}>{t.priority}</span>}<div className="text-sm font-medium text-gray-200">{t.name}</div></div>{prog!==null&&<div className="mb-2"><div className="flex justify-between text-xs text-gray-400 mb-0.5"><span>Checklist</span><span>{prog}%</span></div><div className="h-1.5 bg-gray-700 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div></div>}<div className="flex items-center justify-between"><span className={"px-1.5 py-0.5 rounded text-xs "+ws.color+" "+ws.text}>{t.workstream.length>12?t.workstream.slice(0,12)+"...":t.workstream}</span><Avatar member={mb}/></div>{st.name==="Archive - Complete"&&t.archiveCompleteDate&&(()=>{const acd=parseDate(t.archiveCompleteDate);const expiresIn=acd?7-Math.round((new Date()-acd)/86400000):null;return <div className={"text-xs mt-1 "+(expiresIn!==null&&expiresIn<=2?"text-red-400":"text-gray-600")}>⏳ {expiresIn!==null?(expiresIn<=0?"Expires today":expiresIn===1?"Expires tomorrow":"Expires in "+expiresIn+"d"):"Expires soon"}</div>})()}{t.deadline&&st.name!=="Archive - Complete"&&<div className="text-xs text-gray-500 mt-1">Due {t.deadline}</div>}</div></div>;})}</div></div>;})} </div></div></div>}
-        {workSubTab==="list"&&<div><div className="flex items-center gap-2 mb-4 flex-wrap"><h2 className="text-2xl font-bold mr-2">Task List</h2><select value={filterMember} onChange={e=>setFilterMember(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All members</option>{members.map(m=><option key={m.id}>{m.name}</option>)}</select><select value={filterWS} onChange={e=>setFilterWS(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All workstreams</option>{workstreams.map(w=><option key={w.id}>{w.name}</option>)}</select><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All statuses</option>{statuses.map(s=><option key={s.id}>{s.name}</option>)}</select><select value={listSort.col+"_"+listSort.dir} onChange={e=>{const[col,dir]=e.target.value.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="priority_desc">Priority ↓</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option><option value="workstream_asc">Workstream A–Z</option><option value="assignee_asc">Assignee A–Z</option><option value="status_asc">Status A–Z</option></select><div className="flex-1"/><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">+ New Task</button></div><div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">            <table className="w-full text-sm"><thead><tr className="border-b border-gray-800 text-gray-400 text-xs uppercase"><th className="w-1 p-0"/>{[["name","Task",""],["priority","Priority","hidden lg:table-cell"],["workstream","Workstream","hidden md:table-cell"],["","Epic","hidden lg:table-cell"],["assignee","Assignee",""],["status","Status",""],["","Progress","hidden md:table-cell"],["deadline","Deadline","hidden md:table-cell"]].map(([col,label,cls])=><th key={label} className={"text-left p-3 select-none "+(cls||"")+(col?" cursor-pointer hover:text-white":"")} onClick={col?()=>setListSort(s=>({col,dir:s.col===col&&s.dir==="asc"?"desc":"asc"})):undefined}>{label}{col&&listSort.col===col?<span className="ml-1 text-indigo-400">{listSort.dir==="asc"?"▲":"▼"}</span>:col?<span className="ml-1 text-gray-700">⇅</span>:null}</th>)}<th className="p-3"/></tr></thead>            <tbody>{filtered.map(t=>{const prog=taskProgress(t),ws=getWS(t.workstream),mb=getMember(t.assignee),isRR=t.status==="Complete - RR",isFullyDone=t.status==="Complete",isArchived=t.status==="Archive - Complete",isDone=isRR||isFullyDone||isArchived,pri=PRIORITY_STYLE[t.priority||"N/A"];return <tr key={t.id} ref={el=>taskRefs.current[t.id]=el} className={"border-b border-gray-800 hover:bg-gray-800/50 "+(highlightTask===t.id?"bg-indigo-900/40 ":"")+(isFullyDone||isArchived?"opacity-60":"")+(isRR?" bg-green-950/20":"")+(isArchived?" opacity-50":"")}><td className={"w-1 p-0 border-l-4 "+ws.border}/><td className="p-3"><div className="flex items-center gap-2"><button onClick={()=>toggleTaskDone(t.id)} title={isRR?"Awaiting review — click to reopen":isFullyDone?"Complete — click to reopen":"Mark as complete (requires review)"} className={"w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center "+(isFullyDone||isArchived?"bg-green-500 border-green-500":isRR?"bg-amber-500 border-amber-500":"border-gray-600 hover:border-amber-400")}>{isDone&&<span className="text-white text-xs font-bold">✓</span>}</button><span className={"font-medium "+(isDone?"line-through text-gray-500":"text-gray-200")}>{t.name}</span></div>{t.notes&&<div className="text-xs text-gray-500 mt-0.5 truncate max-w-xs pl-7">{t.notes}</div>}{t.checklist&&t.checklist.length>0&&<div className="mt-1 space-y-0.5 pl-7">{t.checklist.map(c=><div key={c.id} className="flex items-center gap-1.5 cursor-pointer" onClick={()=>toggleCLDone(t.id,c.id)}><div className={"w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center "+(c.done?"bg-indigo-500 border-indigo-500":"border-gray-600")}>{c.done&&<span className="text-white text-xs">✓</span>}</div><span className={"text-xs "+(c.done?"line-through text-gray-500":"text-gray-400")}>{c.text}</span></div>)}</div>}</td><td className="p-3 hidden lg:table-cell"><span className={"px-2 py-0.5 rounded text-xs "+pri.badge}>{t.priority||"N/A"}</span></td><td className="p-3 hidden md:table-cell"><span className={"px-2 py-0.5 rounded text-xs font-semibold "+ws.color+" "+ws.text}>{t.workstream}</span></td><td className="p-3 hidden lg:table-cell text-gray-400 text-xs">{t.epic}</td><td className="p-3"><div className="flex items-center gap-1.5"><Avatar member={mb}/><span className="hidden sm:block text-gray-300">{t.assignee}</span></div></td><td className="p-3"><StatusDropdown value={t.status} onChange={v=>{const isAC=v==="Archive - Complete";setTasks(ts=>ts.map(x=>x.id===t.id?Object.assign({},x,{status:v,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!x.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{}):x));addLog("status_change","Status: "+t.name+" to "+v);}} statuses={statuses}/></td><td className="p-3 hidden md:table-cell">{prog!==null?<div className="flex items-center gap-2"><div className="h-1.5 w-16 bg-gray-800 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div><span className="text-xs text-gray-400">{prog}%</span></div>:<span className="text-xs text-gray-600">—</span>}</td><td className="p-3 hidden md:table-cell text-gray-400">{t.deadline||"—"}</td><td className="p-3"><div className="flex gap-1"><button onClick={()=>openEdit(t)} className="text-gray-500 hover:text-white p-1">✏️</button><button onClick={()=>deleteTask(t.id)} className="text-gray-500 hover:text-red-400 p-1">🗑</button></div></td></tr>;})} </tbody></table>            {filtered.length===0&&<div className="p-8 text-center text-gray-500">No tasks match filters</div>}          </div>        </div>}
+        {workSubTab==="kanban"&&<div><div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Kanban</h2><div className="flex items-center gap-2"><select value={listSort.col==="priority"&&listSort.dir==="asc"?"priority_asc":listSort.col==="deadline"?"deadline_asc":listSort.col==="name"?"name_asc":"priority_asc"} onChange={e=>{const v=e.target.value;const[col,dir]=v.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option></select><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium">+ New Task</button></div></div><div className="flex gap-2 mb-4 flex-wrap">{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div><div style={{overflowX:"auto",overflowY:"visible",paddingBottom:"1rem"}}><div style={{display:"flex",gap:"12px",minWidth:"max-content",paddingBottom:"2px"}}>{statuses.map(st=>{const col=(()=>{  const base=tasks.filter(t=>t.status===st.name&&(filterMember==="All"||t.assignee===filterMember));  const{col:sc,dir}=listSort;const d=dir==="asc"?1:-1;  return [...base].sort((a,b)=>{    if(sc==="priority") return d*((PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));    if(sc==="name") return d*(a.name||"").localeCompare(b.name||"");    if(sc==="deadline"){const da=a.deadline||"9999",db=b.deadline||"9999";return d*(da.localeCompare(db));}    return 0;  });})();return <div key={st.id} className={"flex-shrink-0 w-60 border-t-2 "+st.board+" bg-gray-900 rounded-xl p-3"} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(dragTask){const isAC=st.name==="Archive - Complete";const isComp=st.name==="Complete";setTasks(ts=>ts.map(t=>t.id===dragTask?Object.assign({},t,{status:st.name,lastModified:new Date().toISOString()},isAC&&!t.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{},isComp&&!t.completionDate?{completionDate:fmtDate(TODAY)}:{}):t));addLog("status_change","Moved to "+st.name);}setDragTask(null);}}><div className="flex items-center justify-between mb-3"><span className={"text-xs font-semibold px-2 py-0.5 rounded "+st.badge}>{st.name}</span><span className="text-xs bg-gray-800 rounded-full px-2 py-0.5 text-gray-400">{col.length}</span></div><div className="space-y-2">{col.map(t=>{const ws=getWS(t.workstream),prog=taskProgress(t),mb=getMember(t.assignee),pri=PRIORITY_STYLE[t.priority||"N/A"];return <div key={t.id} draggable onDragStart={()=>setDragTask(t.id)} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 cursor-grab hover:bg-gray-700" onClick={()=>openEdit(t)}><div className={"h-1 w-full "+ws.dot} style={wsStyle(ws)}/><div className="p-3"><div className="flex items-start gap-2 mb-1">{t.priority&&t.priority!=="N/A"&&<span className={"text-xs px-1.5 py-0.5 rounded flex-shrink-0 "+pri.badge}>{t.priority}</span>}<div className="text-sm font-medium text-gray-200">{t.name}</div></div>{prog!==null&&<div className="mb-2"><div className="flex justify-between text-xs text-gray-400 mb-0.5"><span>Checklist</span><span>{prog}%</span></div><div className="h-1.5 bg-gray-700 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div></div>}<div className="flex items-center justify-between"><span className={"px-1.5 py-0.5 rounded text-xs "+ws.color+" "+ws.text}>{t.workstream.length>12?t.workstream.slice(0,12)+"...":t.workstream}</span><Avatar member={mb}/></div>{st.name==="Archive - Complete"&&t.archiveCompleteDate&&(()=>{const acd=parseDate(t.archiveCompleteDate);const expiresIn=acd?7-Math.round((new Date()-acd)/86400000):null;return <div className={"text-xs mt-1 "+(expiresIn!==null&&expiresIn<=2?"text-red-400":"text-gray-600")}>⏳ {expiresIn!==null?(expiresIn<=0?"Expires today":expiresIn===1?"Expires tomorrow":"Expires in "+expiresIn+"d"):"Expires soon"}</div>})()}{t.deadline&&st.name!=="Archive - Complete"&&<div className="text-xs text-gray-500 mt-1">Due {t.deadline}</div>}</div></div>;})}</div></div>;})} </div></div></div>}
+        {workSubTab==="list"&&<div><div className="flex items-center gap-2 mb-4 flex-wrap"><h2 className="text-2xl font-bold mr-2">Task List</h2><select value={filterMember} onChange={e=>setFilterMember(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All members</option>{members.map(m=><option key={m.id}>{m.name}</option>)}</select><select value={filterWS} onChange={e=>setFilterWS(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All workstreams</option>{workstreams.map(w=><option key={w.id}>{w.name}</option>)}</select><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All statuses</option>{statuses.map(s=><option key={s.id}>{s.name}</option>)}</select><select value={listSort.col+"_"+listSort.dir} onChange={e=>{const[col,dir]=e.target.value.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="priority_desc">Priority ↓</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option><option value="workstream_asc">Workstream A–Z</option><option value="assignee_asc">Assignee A–Z</option><option value="status_asc">Status A–Z</option></select><div className="flex-1"/><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">+ New Task</button></div><div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">            <table className="w-full text-sm"><thead><tr className="border-b border-gray-800 text-gray-400 text-xs uppercase"><th className="w-1 p-0"/>{[["name","Task",""],["priority","Priority","hidden lg:table-cell"],["workstream","Workstream","hidden md:table-cell"],["","Epic","hidden lg:table-cell"],["assignee","Assignee",""],["status","Status",""],["","Progress","hidden md:table-cell"],["deadline","Deadline","hidden md:table-cell"]].map(([col,label,cls])=><th key={label} className={"text-left p-3 select-none "+(cls||"")+(col?" cursor-pointer hover:text-white":"")} onClick={col?()=>setListSort(s=>({col,dir:s.col===col&&s.dir==="asc"?"desc":"asc"})):undefined}>{label}{col&&listSort.col===col?<span className="ml-1 text-indigo-400">{listSort.dir==="asc"?"▲":"▼"}</span>:col?<span className="ml-1 text-gray-700">⇅</span>:null}</th>)}<th className="p-3"/></tr></thead>            <tbody>{filtered.map(t=>{const prog=taskProgress(t),ws=getWS(t.workstream),mb=getMember(t.assignee),isRR=t.status==="Complete - RR",isFullyDone=t.status==="Complete",isArchived=t.status==="Archive - Complete",isDone=isRR||isFullyDone||isArchived,pri=PRIORITY_STYLE[t.priority||"N/A"];return <tr key={t.id} ref={el=>taskRefs.current[t.id]=el} className={"border-b border-gray-800 hover:bg-gray-800/50 "+(highlightTask===t.id?"bg-indigo-900/40 ":"")+(isFullyDone||isArchived?"opacity-60":"")+(isRR?" bg-green-950/20":"")+(isArchived?" opacity-50":"")}><td className={"w-1 p-0 border-l-4 "+ws.border}/><td className="p-3"><div className="flex items-center gap-2"><button onClick={()=>toggleTaskDone(t.id)} title={isRR?"Awaiting review — click to reopen":isFullyDone?"Complete — click to reopen":"Mark as complete (requires review)"} className={"w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center "+(isFullyDone||isArchived?"bg-green-500 border-green-500":isRR?"bg-amber-500 border-amber-500":"border-gray-600 hover:border-amber-400")}>{isDone&&<span className="text-white text-xs font-bold">✓</span>}</button><span className={"font-medium "+(isDone?"line-through text-gray-500":"text-gray-200")}>{t.name}</span></div>{t.notes&&<div className="text-xs text-gray-500 mt-0.5 truncate max-w-xs pl-7">{t.notes}</div>}{t.checklist&&t.checklist.length>0&&<div className="mt-1 space-y-0.5 pl-7">{t.checklist.map(c=><div key={c.id} className="flex items-center gap-1.5 cursor-pointer" onClick={()=>toggleCLDone(t.id,c.id)}><div className={"w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center "+(c.done?"bg-indigo-500 border-indigo-500":"border-gray-600")}>{c.done&&<span className="text-white text-xs">✓</span>}</div><span className={"text-xs "+(c.done?"line-through text-gray-500":"text-gray-400")}>{c.text}</span></div>)}</div>}</td><td className="p-3 hidden lg:table-cell"><span className={"px-2 py-0.5 rounded text-xs "+pri.badge}>{t.priority||"N/A"}</span></td><td className="p-3 hidden md:table-cell"><span className={"px-2 py-0.5 rounded text-xs font-semibold "+ws.color+" "+ws.text}>{t.workstream}</span></td><td className="p-3 hidden lg:table-cell text-gray-400 text-xs">{t.epic}</td><td className="p-3"><div className="flex items-center gap-1.5"><Avatar member={mb}/><span className="hidden sm:block text-gray-300">{t.assignee}</span></div></td><td className="p-3"><StatusDropdown value={t.status} onChange={v=>{const isAC=v==="Archive - Complete";const isComp=v==="Complete";setTasks(ts=>ts.map(x=>x.id===t.id?Object.assign({},x,{status:v,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!x.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{},isComp&&!x.completionDate?{completionDate:fmtDate(TODAY)}:{}):x));addLog("status_change","Status: "+t.name+" to "+v);}} statuses={statuses}/></td><td className="p-3 hidden md:table-cell">{prog!==null?<div className="flex items-center gap-2"><div className="h-1.5 w-16 bg-gray-800 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div><span className="text-xs text-gray-400">{prog}%</span></div>:<span className="text-xs text-gray-600">—</span>}</td><td className="p-3 hidden md:table-cell text-gray-400">{t.deadline||"—"}</td><td className="p-3"><div className="flex gap-1"><button onClick={()=>openEdit(t)} className="text-gray-500 hover:text-white p-1">✏️</button><button onClick={()=>deleteTask(t.id)} className="text-gray-500 hover:text-red-400 p-1">🗑</button></div></td></tr>;})} </tbody></table>            {filtered.length===0&&<div className="p-8 text-center text-gray-500">No tasks match filters</div>}          </div>        </div>}
         {workSubTab==="people"&&<div className="max-w-4xl mx-auto"><h2 className="text-2xl font-bold mb-6">People</h2><div className="grid grid-cols-1 gap-6 md:grid-cols-2">{members.filter(m=>m.name!=="Unassigned").map(m=>{const mt=tasks.filter(t=>t.assignee===m.name&&t.status!=="Archive - Complete"),md=mt.filter(t=>t.status==="Complete"||t.status==="Complete - RR"||t.status==="Archived"||t.status==="Archive - Complete").length,ongoing=mt.filter(t=>t.status==="Ongoing"),active=mt.filter(t=>isActive(t)&&t.status!=="Ongoing");return <div key={m.id} className="bg-gray-900 rounded-xl border border-gray-800 p-5"><div className="flex items-center gap-3 mb-4"><AvatarLg member={m}/><div><div className="font-bold text-lg">{m.name}</div><div className="text-gray-400 text-sm">{mt.length} tasks, {md} complete</div></div></div><div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-4"><div className={"h-full rounded-full "+m.bg} style={{width:(mt.length?Math.round(md/mt.length*100):0)+"%"}}/></div>{ongoing.length>0&&<div className="mb-3"><div className="text-xs text-gray-500 uppercase mb-1">Ongoing</div>{ongoing.map(t=><div key={t.id} className="text-sm text-blue-300 py-0.5 cursor-pointer hover:underline" onClick={()=>jumpToTask(t.id)}>• {t.name}</div>)}</div>}{active.length>0&&<div><div className="text-xs text-gray-500 uppercase mb-1">Active</div>{active.slice(0,5).map(t=><div key={t.id} className="text-sm text-gray-300 py-0.5 cursor-pointer hover:underline" onClick={()=>jumpToTask(t.id)}>• {t.name}</div>)}{active.length>5&&<div className="text-xs text-gray-500 mt-1">+{active.length-5} more</div>}</div>}</div>;})} </div></div>}
         </div>}
         {view==="decisions"&&<DecisionTracker decisions={decisions} setDecisions={setDecisions} members={members} workstreams={workstreams} epics={epics} meetingMode={meetingMode} meetingAttendees={meetingAttendees} addLog={addLog}/>}
@@ -4473,7 +4766,7 @@ function Combobox({value,onChange,options,placeholder,onCreateNew}){
   const[open,setOpen]=useState(false);
   const[query,setQuery]=useState("");
   const ref=useRef();
-  // Sync query with value when value changes externally
+  // Reset query when closing or when value changes externally
   useEffect(()=>{if(!open)setQuery("");},[open,value]);
   useEffect(()=>{
     function h(e){if(ref.current&&!ref.current.contains(e.target))setOpen(false);}
@@ -4483,7 +4776,19 @@ function Combobox({value,onChange,options,placeholder,onCreateNew}){
   const filtered=options.filter(o=>o.toLowerCase().includes(query.toLowerCase()));
   const showCreate=query.trim()&&!options.find(o=>o.toLowerCase()===query.trim().toLowerCase());
   function select(opt){onChange(opt);setQuery("");setOpen(false);}
-  function handleInput(e){setQuery(e.target.value);onChange(e.target.value);setOpen(true);}
+  // Only filter on input — don't propagate intermediate typing to onChange.
+  // The actual value only changes on select() or onCreateNew().
+  function handleInput(e){setQuery(e.target.value);setOpen(true);}
+  function handleKey(e){
+    if(e.key==="Enter"){
+      e.preventDefault();
+      if(filtered.length>0&&filtered[0].toLowerCase()===query.trim().toLowerCase())select(filtered[0]);
+      else if(showCreate)handleCreate();
+      else if(filtered.length===1)select(filtered[0]);
+    } else if(e.key==="Escape"){
+      setOpen(false);setQuery("");
+    }
+  }
   function handleCreate(){if(onCreateNew&&query.trim()){onCreateNew(query.trim());select(query.trim());}}
   return(
     <div ref={ref} className="relative">
@@ -4492,6 +4797,7 @@ function Combobox({value,onChange,options,placeholder,onCreateNew}){
           value={open?query:value}
           onChange={handleInput}
           onFocus={()=>{setQuery("");setOpen(true);}}
+          onKeyDown={handleKey}
           placeholder={placeholder||"Type or select..."}
           className="flex-1 bg-transparent px-3 py-2 text-sm text-gray-200 focus:outline-none"
         />
@@ -4601,6 +4907,7 @@ function ContactsView({contacts,setContacts,members,addLog}){
   }
 
   function deleteContact(id){
+    if(!confirm("Delete this contact? This cannot be undone.")) return;
     const contact=contacts.find(x=>x.id===id);
     setContacts(cs=>cs.filter(x=>x.id!==id));
     if(activeContact&&activeContact.id===id) setActiveContact(null);
@@ -4780,7 +5087,7 @@ function ContactsView({contacts,setContacts,members,addLog}){
                     {[["Email",activeContact.email,"mailto:"+activeContact.email],["LinkedIn",activeContact.linkedin?activeContact.linkedin.replace(/^https?:\/\//,"").slice(0,28)+"…":null,activeContact.linkedin],["Phone",activeContact.phone,null]].filter(r=>r[1]).map(([label,val,href])=>(
                       <div key={label} className="flex items-center gap-2">
                         <span className="text-xs text-gray-500 w-14">{label}</span>
-                        {href?<a href={href} target="_blank" rel="noopener" className="text-xs text-indigo-400 hover:underline truncate">{val}</a>:<span className="text-xs text-gray-300">{val}</span>}
+                        {href?<a href={href} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-400 hover:underline truncate">{val}</a>:<span className="text-xs text-gray-300">{val}</span>}
                       </div>
                     ))}
                     {[["Internal owner",activeContact.poc],["Assignee",activeContact.assignee],["Introduced by",activeContact.introducedBy],["Source",activeContact.source],["Check size",activeContact.checkSize],["Thesis fit",activeContact.thesisFit]].filter(r=>r[1]).map(([label,val])=>(
@@ -5440,7 +5747,7 @@ function SystemHealth({gsUrl,gsConnected,gsClientRef,lastSyncRef,syncConflict,gs
       {/* ── LIVESYNC Footer Bar ── */}
       <div className="ls-footer">
         <div className="ls-logo">
-          <span className="ls-dot">·</span>
+          <span style="color:#e52626">·</span>
           <span style={{letterSpacing:"0.18em",fontWeight:700}}>LIVESYNC</span>
         </div>
         <span style={{opacity:0.6,fontSize:"0.65rem"}}>Project Management System</span>
