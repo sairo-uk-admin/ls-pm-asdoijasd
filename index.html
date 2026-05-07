@@ -2065,6 +2065,7 @@ video {
 
   :root {
     --ls-blue:   #0036db;
+    --ls-blue-dark: #002da8;
     --ls-white:  #ffffff;
     --ls-black:  #252525;
     --ls-red:    #e52626;
@@ -2257,6 +2258,71 @@ video {
   .border-indigo-600              { border-color: var(--ls-blue) !important; }
   .border-indigo-700              { border-color: var(--ls-blue) !important; }
 
+  /* ── Light mode: button visibility fixes ──
+     Certain buttons use Tailwind colour classes (bg-indigo-600, bg-red-600 etc).
+     The light-theme overrides force white text to dark, which makes button labels invisible
+     against the coloured background. Re-assert white text for these specific cases. */
+  .bg-indigo-600.text-white,
+  .bg-indigo-700.text-white,
+  .bg-indigo-500.text-white,
+  .bg-red-600.text-white,
+  .bg-red-700.text-white,
+  .bg-green-600.text-white,
+  .bg-green-700.text-white,
+  .bg-amber-600.text-white,
+  button.bg-indigo-600,
+  button.bg-indigo-700,
+  button.bg-indigo-500,
+  button.bg-red-600,
+  button.bg-red-700,
+  button.bg-green-700,
+  button.bg-amber-600,
+  .bg-indigo-600 *:not([class*=opacity]):not([class*=text-gray-]),
+  .bg-indigo-700 *:not([class*=text-gray-]) {
+    color: #ffffff !important;
+  }
+  /* Buttons over coloured backgrounds: keep them coloured even in light mode  */
+  button.bg-indigo-600,
+  button.bg-indigo-500,
+  button.bg-indigo-700 {
+    background: var(--ls-blue) !important;
+    color: #ffffff !important;
+    border-color: var(--ls-blue) !important;
+  }
+  button.bg-indigo-600:hover,
+  button.bg-indigo-500:hover,
+  button.bg-indigo-700:hover {
+    background: var(--ls-blue-dark, #002da8) !important;
+  }
+  button.bg-red-600,
+  button.bg-red-700 {
+    background: var(--ls-red) !important;
+    color: #ffffff !important;
+    border-color: var(--ls-red) !important;
+  }
+  button.bg-green-700,
+  button.bg-green-600 {
+    background: #15803d !important;
+    color: #ffffff !important;
+    border-color: #15803d !important;
+  }
+  /* Default gray buttons — make them readable in light mode */
+  button.bg-gray-700,
+  button.bg-gray-800 {
+    background: #f3f4f6 !important;
+    color: var(--ls-black) !important;
+    border-color: var(--ls-border) !important;
+  }
+  button.bg-gray-700:hover,
+  button.bg-gray-800:hover,
+  button.hover\:bg-gray-700:hover,
+  button.hover\:bg-gray-600:hover {
+    background: #e5e7eb !important;
+    color: var(--ls-black) !important;
+  }
+  /* Disabled state — show clearly */
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
   /* Text — all grays become LIVESYNC black / dark */
   .text-white                     { color: var(--ls-black) !important; }
   .text-gray-100                  { color: var(--ls-black) !important; }
@@ -2344,6 +2410,61 @@ video {
 
   /* ── Numbers — Verdana family for stat figures ── */
   .stat-number, .text-4xl, .text-3xl { font-family: 'Verdana Pro', Verdana, sans-serif !important; }
+
+
+
+  /* ── Mobile responsiveness improvements ── */
+  @media (max-width: 640px) {
+    .ls-content { padding: 16px 12px; }
+    /* Make table cells wrap better */
+    .ls-content table { font-size: 0.78rem; }
+    .ls-content table td, .ls-content table th { padding: 6px 4px; }
+    /* Stack header buttons */
+    .ls-topbar { padding: 0 8px; }
+    .ls-topbar .ls-logo svg { height: 18px; }
+    .ls-navbar { padding: 0 8px; overflow-x: auto; }
+    .ls-nav-btn { padding: 6px 10px !important; font-size: 0.8rem; }
+    /* Modal padding */
+    [role="dialog"] > div { margin: 8px; max-width: calc(100vw - 16px) !important; }
+  }
+  /* Tablet adjustments */
+  @media (max-width: 900px) {
+    .ls-content { padding: 20px 16px; }
+  }
+
+  /* ── Settings sidebar nav buttons ── */
+  .ls-settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ls-settings-nav-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    background: transparent;
+    color: #718096;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.12s, color 0.12s;
+  }
+  .ls-settings-nav-btn:hover {
+    background: rgba(0,54,219,0.06);
+    color: var(--ls-black);
+  }
+  .ls-settings-nav-btn.active {
+    background: var(--ls-blue);
+    color: #ffffff;
+    font-weight: 600;
+  }
+  [data-theme="dark"] .ls-settings-nav-btn { color: #9ca3af; }
+  [data-theme="dark"] .ls-settings-nav-btn:hover { background: #1f2937; color: #f3f4f6; }
+  [data-theme="dark"] .ls-settings-nav-btn.active { background: #4f46e5; color: #ffffff; }
 
   /* ── LIVESYNC top bar chrome ── */
   .ls-topbar {
@@ -2514,10 +2635,12 @@ const DEFAULT_STATUSES=[
   {id:"s1",name:"Not Started",badge:"bg-slate-700 text-slate-300",board:"border-slate-500"},
   {id:"s2",name:"Scheduled - TBD upcoming",badge:"bg-sky-900 text-sky-300",board:"border-sky-500"},
   {id:"s3",name:"Ongoing",badge:"bg-blue-700 text-blue-100",board:"border-blue-500"},
-  {id:"s4",name:"Pending Ext Factors",badge:"bg-yellow-800 text-yellow-200",board:"border-yellow-500"},
-  {id:"s5",name:"Complete",badge:"bg-gray-700 text-gray-400 italic",board:"border-gray-500"},
-  {id:"s6",name:"Complete - RR",badge:"bg-green-600 text-white font-bold",board:"border-green-400"},
-  {id:"s7",name:"Archived",badge:"bg-gray-900 text-gray-600",board:"border-gray-700"},
+  {id:"s4",name:"never-ending……",badge:"bg-slate-600 text-slate-200",board:"border-slate-400"},
+  {id:"s5",name:"Pending Ext Factors",badge:"bg-yellow-800 text-yellow-200",board:"border-yellow-500"},
+  {id:"s9",name:"Blocked",badge:"bg-red-800 text-red-100 font-bold",board:"border-red-500"},
+  {id:"s6",name:"Complete",badge:"bg-gray-700 text-gray-400 italic",board:"border-gray-500"},
+  {id:"s7",name:"Complete - RR",badge:"bg-green-600 text-white font-bold",board:"border-green-400"},
+  {id:"sA",name:"Archived",badge:"bg-gray-900 text-gray-600",board:"border-gray-700"},
   {id:"s8",name:"Archive - Complete",badge:"bg-gray-900 text-gray-700 italic",board:"border-gray-800"},
 ];
 const DEFAULT_MEMBERS=[
@@ -2552,7 +2675,7 @@ const PRIORITY_STYLE={
 };
 const DAY_PX=12,ROW_H=36,LABEL_W=220;
 const TODAY=new Date();
-const ACTIVE_STATUSES=["Ongoing","Scheduled - TBD upcoming","Pending Ext Factors","Complete - RR"];
+const ACTIVE_STATUSES=["Not Started","Scheduled - TBD upcoming","Ongoing","never-ending……","Pending Ext Factors","Blocked","Complete - RR"];
 
 // ── DATE HELPERS ──────────────────────────────────────────────────────────────
 function parseDate(s){if(!s)return null;const d=new Date(s+"T00:00:00");return isNaN(d.getTime())?null:d;}
@@ -2715,7 +2838,10 @@ function createSheetsClient(scriptUrl){
 
   async function readConfig(sheet){
     const r=await req({action:"readConfig",sheet});
-    if(r&&r.data) return JSON.parse(r.data);
+    if(r&&r.data){
+      try{ return JSON.parse(r.data); }
+      catch(e){ console.warn("Config parse failed for "+sheet+":",e); return null; }
+    }
     return null;
   }
 
@@ -2907,46 +3033,126 @@ function PriorityHeatmap({tasks}){
 function wsStyle(ws){return ws._customColor?{background:ws._customColor}:{};}
 function WorkstreamCard({ws,tasks,jumpToTask,getMember,getStatus,openEdit}){
   const[expanded,setExpanded]=useState(true);
-  const at=tasks.filter(t=>t.workstream===ws.name&&isActive(t)).sort((a,b)=>(PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));
-  if(!at.length)return null;
+  // All non-archived tasks for this workstream, including completed
+  const allTasks=tasks.filter(t=>t.workstream===ws.name&&t.status!=="Archive - Complete"&&t.status!=="Archived");
+  if(!allTasks.length)return null;
+  // Group by section (same mapping as MeetingPack)
+  function sectionFor(status){
+    if(status==="Blocked") return "blocked";
+    if(status==="Ongoing"||status==="never-ending……") return "in_progress";
+    if(status==="Not Started"||status==="Scheduled - TBD upcoming"||status==="Pending Ext Factors") return "pending";
+    if(status==="Complete - RR") return "review";
+    if(status==="Complete") return "complete";
+    return null;
+  }
+  const SECTION_META={
+    blocked:{label:"Blocked",icon:"🔴",color:"text-red-400"},
+    in_progress:{label:"In Progress",icon:"🔄",color:"text-blue-400"},
+    pending:{label:"Pending",icon:"⏳",color:"text-yellow-400"},
+    review:{label:"Awaiting Review",icon:"✓",color:"text-green-400"},
+    complete:{label:"Complete",icon:"✅",color:"text-gray-400"},
+  };
+  const grouped={blocked:[],in_progress:[],pending:[],review:[],complete:[]};
+  allTasks.forEach(t=>{const s=sectionFor(t.status);if(s)grouped[s].push(t);});
+  // Sort each by priority
+  Object.keys(grouped).forEach(k=>grouped[k].sort((a,b)=>(PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order)));
+  const activeCount=allTasks.filter(t=>isActive(t)).length;
   const rag=ragStatus(tasks,ws.name);const ri=RAG[rag];
+  const visibleSections=["blocked","in_progress","pending","review","complete"].filter(k=>grouped[k].length>0);
   return(
     <div className={"bg-gray-900 border border-gray-800 rounded-xl overflow-hidden ring-1 "+ri.ring}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 cursor-pointer select-none" onClick={()=>setExpanded(e=>!e)}>
-        <div className="flex items-center gap-3"><div className={"w-3 h-3 rounded-full flex-shrink-0 "+ws.dot} style={wsStyle(ws)}/><span className="font-semibold text-gray-200">{ws.name}</span><span className="text-xs text-gray-500">{at.length} active</span><div className="flex items-center gap-1"><div className={"w-2 h-2 rounded-full "+ri.dot}/><span className="text-xs text-gray-500">{ri.label}</span></div></div>
-        <div className="flex items-center gap-3"><div className="w-24"><PriorityHeatmap tasks={at}/></div><span className="text-gray-500 text-sm">{expanded?"▲":"▼"}</span></div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className={"w-3 h-3 rounded-full flex-shrink-0 "+ws.dot} style={wsStyle(ws)}/>
+          <span className="font-semibold text-gray-200">{ws.name}</span>
+          <span className="text-xs text-gray-500">{activeCount} active · {allTasks.length} open</span>
+          <div className="flex items-center gap-1"><div className={"w-2 h-2 rounded-full "+ri.dot}/><span className="text-xs text-gray-500">{ri.label}</span></div>
+        </div>
+        <div className="flex items-center gap-3"><div className="w-24"><PriorityHeatmap tasks={allTasks.filter(t=>isActive(t))}/></div><span className="text-gray-500 text-sm">{expanded?"▲":"▼"}</span></div>
       </div>
-      {expanded&&<div className="divide-y divide-gray-800/60">{at.map(t=>{
-        const mb=getMember(t.assignee);const st=getStatus(t.status);
-        const now=new Date();const d=t.deadline?parseDate(t.deadline):null;const od=d&&diffDays(d,now)>0;const prog=taskProgress(t);
-        return(
-          <div key={t.id} className={"flex items-center gap-3 px-4 py-2.5 hover:bg-gray-800/50 cursor-pointer "+(od?"bg-red-900/30":"")} onClick={()=>openEdit(t)}>
-            <div className={"w-2 h-2 rounded-full flex-shrink-0 "+(t.priority==="URGENT"?"bg-red-500":t.priority==="High"?"bg-orange-500":t.priority==="Medium"?"bg-yellow-500":"bg-gray-600")}/>
-            <span className="flex-1 text-sm text-gray-200 truncate">{t.name}</span>
-            {prog!==null&&<div className="flex items-center gap-1.5 flex-shrink-0"><div className="w-12 h-1.5 bg-gray-800 rounded-full overflow-hidden"><div className={"h-full rounded-full "+(prog===100?"bg-green-500":"bg-indigo-500")} style={{width:prog+"%"}}/></div><span className="text-xs text-gray-500 w-6 text-right">{prog}%</span></div>}
-            <Avatar member={mb}/>
-            <span className={"px-2 py-0.5 rounded text-xs font-semibold flex-shrink-0 "+st.badge}>{t.status}</span>
-            <span className={"text-xs flex-shrink-0 w-20 text-right "+(od?"text-red-400 font-semibold":"text-gray-500")}>{t.deadline?(od?"Overdue":t.deadline):"—"}</span>
-          </div>
-        );
-      })}</div>}
+      {expanded&&<div className="p-3">
+        <div className="grid gap-3" style={{gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>
+          {visibleSections.map(secKey=>{
+            const items=grouped[secKey];const m=SECTION_META[secKey];
+            return(
+              <div key={secKey} className="bg-gray-950/40 border border-gray-800 rounded-lg p-2.5 flex flex-col" style={{minHeight:80}}>
+                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-800">
+                  <span className="text-base">{m.icon}</span>
+                  <span className={"text-xs font-semibold uppercase tracking-wide flex-1 "+m.color}>{m.label}</span>
+                  <span className="text-xs text-gray-600 bg-gray-800 px-1.5 py-0.5 rounded">{items.length}</span>
+                </div>
+                <div className="space-y-1.5 flex-1">
+                  {items.map(t=>{
+                    const mb=getMember(t.assignee);
+                    const now=new Date();const d=t.deadline?parseDate(t.deadline):null;const od=d&&diffDays(d,now)>0&&!t.status.includes("Complete");
+                    const prog=taskProgress(t);
+                    return(
+                      <div key={t.id} className={"bg-gray-800/40 border border-gray-800 rounded-lg px-2.5 py-2 hover:bg-gray-800/70 cursor-pointer "+(od?"border-red-900/60":"")} onClick={()=>openEdit(t)}>
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <div className={"w-1.5 h-1.5 rounded-full flex-shrink-0 "+(t.priority==="URGENT"?"bg-red-500":t.priority==="High"?"bg-orange-500":t.priority==="Medium"?"bg-yellow-500":"bg-gray-600")}/>
+                          <span className="text-xs text-gray-200 truncate flex-1">{t.name}</span>
+                          {mb&&<span className={"text-[10px] px-1 py-0.5 rounded "+mb.bg+" "+(mb.text||"text-white")} title={t.assignee}>{(t.assignee||"").split(" ").map(p=>p[0]).join("").slice(0,2)}</span>}
+                        </div>
+                        {(prog!==null||t.deadline)&&<div className="flex items-center gap-1.5 ml-3">
+                          {prog!==null&&<div className="w-8 h-1 bg-gray-800 rounded-full overflow-hidden flex-shrink-0"><div className={"h-full rounded-full "+(prog===100?"bg-green-500":"bg-indigo-500")} style={{width:prog+"%"}}/></div>}
+                          {t.deadline&&<span className={"text-[10px] flex-shrink-0 "+(od?"text-red-400 font-semibold":"text-gray-500")}>{od?"Overdue":t.deadline.slice(5)}</span>}
+                        </div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>}
     </div>
   );
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMember,getWS,getStatus,activityLog}){
+function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMember,getWS,getStatus,activityLog,meetingSchedule}){
   const now=new Date();
   const visibleTasks=tasks.filter(t=>t.status!=="Archive - Complete");
   const total=visibleTasks.length;const complete=visibleTasks.filter(t=>t.status==="Complete"||t.status==="Complete - RR"||t.status==="Archived"||t.status==="Archive - Complete").length;const pct=Math.round(complete/total*100)||0;
   const lastThu=getLastThursday(now);const nextThu=getNextThursday(now);
-  const overdue=tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);return d&&diffDays(d,now)>0;}).sort((a,b)=>a.deadline.localeCompare(b.deadline));
-  const unassigned=tasks.filter(t=>!t.assignee||t.assignee==="Unassigned");
-  const upcoming=tasks.filter(t=>{if(t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);if(!d)return false;const diff=diffDays(now,d);return diff>=0&&diff<=14;}).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  // Compute next meeting from schedule (same logic as MeetingPack)
+  const nextScheduledMeeting=(()=>{
+    const todayStr=fmtDate(now);
+    const result=[];
+    const end=addDays(now,14);
+    const cur=new Date(now);cur.setHours(0,0,0,0);
+    while(cur<=end){
+      if(cur.getDay()===4){
+        const ds=fmtDate(cur);
+        const override=(meetingSchedule||[]).find(m=>m.date===ds&&!m.oneOff);
+        if(!override||!override.cancelled)result.push({date:ds,label:"",isRegular:true,cancelled:false});
+        else result.push({date:ds,label:"",isRegular:true,cancelled:true});
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    const todayMidnight=new Date(now);todayMidnight.setHours(0,0,0,0);
+    (meetingSchedule||[]).forEach(m=>{
+      if(!m.oneOff)return;
+      const md=parseDate(m.date);
+      if(!md||md<todayMidnight||md>end)return;
+      if(!result.find(r=>r.date===m.date))result.push({date:m.date,label:m.label||"",isRegular:false,cancelled:m.cancelled||false});
+    });
+    result.sort((a,b)=>a.date.localeCompare(b.date));
+    return result.find(m=>!m.cancelled&&m.date>=todayStr)||null;
+  })();
+  const nextMtgDate=nextScheduledMeeting?parseDate(nextScheduledMeeting.date):nextThu;
+  const {overdue,unassigned,upcoming} = React.useMemo(()=>({
+    overdue: tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);return d&&diffDays(d,now)>0;}).sort((a,b)=>a.deadline.localeCompare(b.deadline)),
+    unassigned: tasks.filter(t=>!t.assignee||t.assignee==="Unassigned"),
+    upcoming: tasks.filter(t=>{if(t.status.includes("Complete")||!t.deadline)return false;const d=parseDate(t.deadline);if(!d)return false;const diff=diffDays(now,d);return diff>=0&&diff<=14;}).sort((a,b)=>a.deadline.localeCompare(b.deadline)),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }),[tasks]);
   // Normalise to midnight so log entries from that day are included
   const lastThuMidnight=new Date(lastThu);lastThuMidnight.setHours(0,0,0,0);
   const sinceLastThu=activityLog.filter(e=>{const d=parseDate(e.date);return d&&d>=lastThuMidnight;});
-  const activeWS=workstreams.filter(ws=>tasks.some(t=>t.workstream===ws.name&&isActive(t)));
+  // Show all workstreams that have at least one task (even completed)
+  const activeWS=workstreams.filter(ws=>tasks.some(t=>t.workstream===ws.name&&t.status!=="Archive - Complete"));
   const ro={red:0,amber:1,green:2};
   const sortedWS=[...activeWS].sort((a,b)=>ro[ragStatus(tasks,a.name)]-ro[ragStatus(tasks,b.name)]);
   return(
@@ -2955,7 +3161,7 @@ function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMe
         <h2 className="text-2xl font-bold">Dashboard</h2>
         <div className="flex items-center gap-4">
           <div className="text-right"><div className="text-gray-400 text-xs">Today</div><div className="text-white font-semibold">{now.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div></div>
-          <div className="bg-indigo-900/50 border border-indigo-700 rounded-xl px-4 py-2 text-right"><div className="text-indigo-300 text-xs">Next Thursday Meeting</div><div className="text-white font-semibold text-sm">{nextThu.toLocaleDateString("en-GB",{day:"numeric",month:"long"})}</div></div>
+          <div className="bg-indigo-900/50 border border-indigo-700 rounded-xl px-4 py-2 text-right"><div className="text-indigo-300 text-xs">Next Meeting</div><div className="text-white font-semibold text-sm">{nextMtgDate.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"long"})}{nextScheduledMeeting&&nextScheduledMeeting.label&&<span className="text-indigo-300 text-xs ml-1.5">— {nextScheduledMeeting.label}</span>}</div></div>
         </div>
       </div>
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-5">
@@ -2977,9 +3183,9 @@ function Dashboard({tasks,workstreams,members,statuses,jumpToTask,openEdit,getMe
       </div>
       {upcoming.length>0&&<div className="bg-gray-900 rounded-xl border border-gray-800 p-4 mb-5"><h3 className="font-semibold text-sm text-gray-200 mb-3">Upcoming — next 14 days</h3><div className="space-y-1.5">{upcoming.map(t=>{const mb=getMember(t.assignee);const st=getStatus(t.status);const d=parseDate(t.deadline);const dl=d?diffDays(now,d):null;return <div key={t.id} className={"flex items-center gap-3 cursor-pointer hover:bg-gray-800 rounded-lg px-2 py-1.5 -mx-2 "+(dl===0?"bg-amber-900/30 ring-1 ring-amber-700/50 rounded-lg":"")} onClick={()=>openEdit(t)}><Avatar member={mb}/><span className="flex-1 text-sm text-gray-200 truncate">{t.name}</span><span className={"px-2 py-0.5 rounded text-xs font-semibold "+st.badge}>{t.status}</span><span className={"text-xs flex-shrink-0 "+(dl===0?"text-orange-400 font-bold":dl<=3?"text-yellow-400":"text-gray-400")}>{dl===0?"🔔 Today":dl===1?"Tomorrow":"in "+dl+"d"}</span></div>;})} </div></div>}
       <div className="space-y-3">
-        <div className="flex items-center justify-between mb-1"><h3 className="font-semibold text-gray-200">Active Workstreams</h3><div className="flex items-center gap-4 text-xs text-gray-500">{Object.entries(RAG).map(([k,v])=><div key={k} className="flex items-center gap-1"><div className={"w-2 h-2 rounded-full "+v.dot}/>{v.label}</div>)}</div></div>
+        <div className="flex items-center justify-between mb-1"><h3 className="font-semibold text-gray-200">Workstreams</h3><div className="flex items-center gap-4 text-xs text-gray-500">{Object.entries(RAG).map(([k,v])=><div key={k} className="flex items-center gap-1"><div className={"w-2 h-2 rounded-full "+v.dot}/>{v.label}</div>)}</div></div>
         {sortedWS.map(ws=><WorkstreamCard key={ws.id} ws={ws} tasks={tasks} jumpToTask={jumpToTask} getMember={getMember} getStatus={getStatus} openEdit={openEdit}/>)}
-        {sortedWS.length===0&&<p className="text-gray-500 text-sm">No active workstreams.</p>}
+        {sortedWS.length===0&&<div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center"><div className="text-3xl mb-2 opacity-40">📋</div><p className="text-gray-400 text-sm mb-1">No workstreams with active tasks</p><p className="text-gray-600 text-xs">Add a task in the Tasks tab to get started</p></div>}
       </div>
     </div>
   );
@@ -3000,13 +3206,29 @@ Research and Competition`;
 
 // ── EMOJI HELPERS ─────────────────────────────────────────────────────────────
 const MOOD_EMOJIS=[
-  {e:"😊",label:"Happy"},{e:"😄",label:"Excited"},{e:"🔥",label:"On fire"},
-  {e:"💪",label:"Motivated"},{e:"🎉",label:"Celebrating"},{e:"😎",label:"Confident"},
-  {e:"🤔",label:"Thinking"},{e:"😐",label:"Neutral"},{e:"😴",label:"Tired"},
-  {e:"😰",label:"Stressed"},{e:"😔",label:"Low"},{e:"😤",label:"Frustrated"},
-  {e:"🤒",label:"Unwell"},{e:"💡",label:"Inspired"},{e:"🙏",label:"Grateful"},
-  {e:"⚡",label:"Energised"},{e:"🌊",label:"In flow"},{e:"🧠",label:"In the zone"},
-  {e:"😬",label:"Anxious"},{e:"❤️",label:"Loving it"},
+  // Energised / positive
+  {e:"😊",label:"Happy"},{e:"😄",label:"Excited"},{e:"😁",label:"Joyful"},
+  {e:"🥳",label:"Celebrating"},{e:"😎",label:"Confident"},{e:"🤩",label:"Starstruck"},
+  {e:"🔥",label:"On fire"},{e:"⚡",label:"Energised"},{e:"💪",label:"Motivated"},
+  {e:"🚀",label:"Launching"},{e:"💯",label:"Crushing it"},{e:"🎉",label:"Wins"},
+  {e:"❤️",label:"Loving it"},{e:"🥰",label:"Warm"},{e:"😌",label:"Content"},
+  // Focused / thoughtful
+  {e:"🧠",label:"In the zone"},{e:"🌊",label:"In flow"},{e:"🎯",label:"Focused"},
+  {e:"💡",label:"Inspired"},{e:"🤔",label:"Thinking"},{e:"🧐",label:"Curious"},
+  {e:"🙏",label:"Grateful"},{e:"☕",label:"Caffeinated"},{e:"📚",label:"Learning"},
+  // Neutral / mid
+  {e:"😐",label:"Neutral"},{e:"🙂",label:"OK"},{e:"😶",label:"Quiet"},
+  {e:"🤷",label:"Whatever"},{e:"😑",label:"Meh"},
+  // Tired / low
+  {e:"😴",label:"Tired"},{e:"🥱",label:"Yawning"},{e:"😪",label:"Sleepy"},
+  {e:"😔",label:"Low"},{e:"🥺",label:"Vulnerable"},{e:"😢",label:"Sad"},
+  {e:"💔",label:"Heartbroken"},{e:"🫠",label:"Melting"},{e:"😞",label:"Disappointed"},
+  // Stressed / negative
+  {e:"😰",label:"Stressed"},{e:"😨",label:"Worried"},{e:"😬",label:"Anxious"},
+  {e:"😣",label:"Struggling"},{e:"😖",label:"Overwhelmed"},{e:"🤯",label:"Mind blown"},
+  {e:"😤",label:"Frustrated"},{e:"😡",label:"Angry"},{e:"🙄",label:"Eye-rolling"},
+  // Unwell
+  {e:"🤒",label:"Unwell"},{e:"🤕",label:"Hurt"},{e:"🤧",label:"Sniffly"},{e:"🥴",label:"Woozy"},
 ];
 function getISOWeek(d){const date=new Date(d);date.setHours(0,0,0,0);date.setDate(date.getDate()+3-(date.getDay()+6)%7);const week1=new Date(date.getFullYear(),0,4);return date.getFullYear()+"-W"+String(1+Math.round(((date.getTime()-week1.getTime())/86400000-3+(week1.getDay()+6)%7)/7)).padStart(2,"0");}
 function getThursdayOfWeek(isoWeek){const[yearStr,wStr]=isoWeek.split("-W");const week=parseInt(wStr);const jan4=new Date(parseInt(yearStr),0,4);const mon=new Date(jan4);mon.setDate(jan4.getDate()-(jan4.getDay()+6)%7+(week-1)*7);const thu=new Date(mon);thu.setDate(mon.getDate()+3);return thu;}
@@ -3114,7 +3336,7 @@ function MeetingSetupPanel({members,meetingAttendees,toggleAttendee,startMeeting
         <p className="text-xs text-gray-400 mb-3">Who's in this meeting?</p>
         <div className="space-y-1.5 mb-4">
           {teamMembers.map(m=>{const sel=meetingAttendees.includes(m.name);return(
-            <div key={m.id} onClick={()=>toggleAttendee(m.name)} className={"flex items-center gap-2.5 p-2 rounded-xl border cursor-pointer transition-colors "+(sel?"border-indigo-500 bg-indigo-900/30":"border-gray-700 hover:border-gray-600")}>
+            <div role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleAttendee(m.name);}}} key={m.id} onClick={()=>toggleAttendee(m.name)} className={"flex items-center gap-2.5 p-2 rounded-xl border cursor-pointer transition-colors "+(sel?"border-indigo-500 bg-indigo-900/30":"border-gray-700 hover:border-gray-600")}>
               <div className={m.bg+" "+(m.text||"text-white")+" w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"}>{m.name[0]}</div>
               <span className="text-sm text-gray-200">{m.name}</span>
               {sel&&<span className="ml-auto text-indigo-400 text-xs font-bold">✓</span>}
@@ -3131,7 +3353,7 @@ function MeetingSetupPanel({members,meetingAttendees,toggleAttendee,startMeeting
 }
 
 // ── MEETING PACK ──────────────────────────────────────────────────────────────
-function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,members,agendaText,setAgendaText,agendaStructure,gsClientRef,gsConnected,emojiLog,setEmojiLog,meetingMode,meetingAttendees,toggleAttendee,startMeeting,endMeeting,meetingSchedule,setMeetingSchedule,agendaHistory,setAgendaHistory,workstreamHealth,setWorkstreamHealth,decisions,setDecisions,addLog}){
+function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,members,agendaText,setAgendaText,agendaStructure,gsClientRef,gsConnected,emojiLog,setEmojiLog,meetingMode,meetingAttendees,toggleAttendee,startMeeting,endMeeting,meetingSchedule,setMeetingSchedule,agendaHistory,setAgendaHistory,workstreamHealth,setWorkstreamHealth,decisions,setDecisions,addLog,meetingStartTime,meetingTick}){
   const now=new Date();
   const todayStr=fmtDate(now);
 
@@ -3174,15 +3396,19 @@ function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,
   // Next upcoming non-cancelled meeting
   const nextMeeting=scheduledMeetings.find(m=>!m.cancelled&&m.date>=todayStr)||scheduledMeetings[0];
 
-  // ── Task sections ──────────────────────────────────────────────────────────
+  // ── Task sections (memoised — re-runs only when tasks/nextMeeting changes) ─
   const nextMeetingDate=nextMeeting?parseDate(nextMeeting.date):getNextThursday(now);
   const lastThu=getLastThursday(now);
-  const overdue=tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete"))return false;const d=parseDate(t.deadline);return d&&diffDays(d,now)>0;});
-  const dueBeforeNext=tasks.filter(t=>{if(t.status.includes("Complete"))return false;const d=parseDate(t.deadline);if(!d)return false;const daysToMeeting=nextMeetingDate?diffDays(now,nextMeetingDate):7;return diffDays(now,d)>=0&&diffDays(now,d)<=daysToMeeting;});
-  const actionRequired=[...overdue,...dueBeforeNext.filter(t=>!overdue.find(o=>o.id===t.id))].sort((a,b)=>(a.deadline||"9999").localeCompare(b.deadline||"9999"));
-  const needsReview=tasks.filter(t=>t.status==="Complete - RR");
-  const lastThuMid=new Date(lastThu);lastThuMid.setHours(0,0,0,0);
-  const notReviewed=tasks.filter(t=>{if(!isActive(t))return false;if(!t.lastReviewed)return true;const lr=parseDate(t.lastReviewed);return lr&&lr<lastThuMid;}).sort((a,b)=>(PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));
+  const {actionRequired,needsReview,notReviewed} = React.useMemo(()=>{
+    const overdue=tasks.filter(t=>{if(t.status==="Archive - Complete"||t.status.includes("Complete"))return false;const d=parseDate(t.deadline);return d&&diffDays(d,now)>0;});
+    const dueBeforeNext=tasks.filter(t=>{if(t.status.includes("Complete"))return false;const d=parseDate(t.deadline);if(!d)return false;const daysToMeeting=nextMeetingDate?diffDays(now,nextMeetingDate):7;return diffDays(now,d)>=0&&diffDays(now,d)<=daysToMeeting;});
+    const actionRequired=[...overdue,...dueBeforeNext.filter(t=>!overdue.find(o=>o.id===t.id))].sort((a,b)=>(a.deadline||"9999").localeCompare(b.deadline||"9999"));
+    const needsReview=tasks.filter(t=>t.status==="Complete - RR");
+    const lastThuMid=new Date(lastThu);lastThuMid.setHours(0,0,0,0);
+    const notReviewed=tasks.filter(t=>{if(!isActive(t))return false;if(!t.lastReviewed)return true;const lr=parseDate(t.lastReviewed);return lr&&lr<lastThuMid;}).sort((a,b)=>(PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));
+    return {actionRequired,needsReview,notReviewed};
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[tasks,nextMeeting&&nextMeeting.date]);
 
   // ── Agenda save / history ─────────────────────────────────────────────────
   const[saving,setSaving]=useState(false);
@@ -3221,8 +3447,6 @@ function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,
   const[showAddMeeting,setShowAddMeeting]=useState(false);
   const[newMeetingDate,setNewMeetingDate]=useState("");
   const[newMeetingLabel,setNewMeetingLabel]=useState("");
-  const[historyExpanded,setHistoryExpanded]=useState(false);
-  const[expandedHistoryDate,setExpandedHistoryDate]=useState(null);
 
   function cancelThursday(dateStr){
     setMeetingSchedule(s=>{
@@ -3242,10 +3466,6 @@ function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,
     setMeetingSchedule(s=>s.filter(m=>m.id!==id));
   }
 
-  // Past agendas = history entries with date < today, sorted newest first, max 3 visible
-  const pastAgendas=[...agendaHistory].filter(h=>h.date<todayStr).sort((a,b)=>b.date.localeCompare(a.date));
-  const visiblePast=historyExpanded?pastAgendas:pastAgendas.slice(0,3);
-
   function TR({t}){const mb=getMember(t.assignee);const st=getStatus(t.status);return <div className="flex items-center gap-3 px-3 py-2 hover:bg-gray-800/50 cursor-pointer rounded-lg" onClick={()=>jumpToTask(t.id)}><Avatar member={mb}/><span className="flex-1 text-sm text-gray-200 truncate">{t.name}</span><span className={"px-2 py-0.5 rounded text-xs font-semibold "+st.badge}>{t.status}</span>{t.deadline&&<span className="text-xs text-gray-400 flex-shrink-0">{t.deadline}</span>}</div>;}
   function Sec({title,items,color,empty}){const[open,setOpen]=useState(true);return <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4"><div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 cursor-pointer" onClick={()=>setOpen(o=>!o)}><div className="flex items-center gap-2"><div className={"w-2 h-2 rounded-full "+color}/><span className="font-semibold text-gray-200">{title}</span><span className="text-xs text-gray-500">{items.length}</span></div><span className="text-gray-500 text-sm">{open?"▲":"▼"}</span></div>{open&&<div className="p-2">{items.length===0?<p className="text-gray-600 text-xs px-3 py-2">{empty}</p>:items.map(t=><TR key={t.id} t={t}/>)}</div>}</div>;}
 
@@ -3255,21 +3475,42 @@ function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,
     return d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
   }
 
+  // Meeting timer display
+  function formatDuration(startISO){
+    if(!startISO)return "";
+    const start=new Date(startISO);
+    const elapsed=Math.floor((new Date()-start)/1000);
+    const h=Math.floor(elapsed/3600);
+    const m=Math.floor((elapsed%3600)/60);
+    const s=elapsed%60;
+    if(h>0)return h+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+    return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  }
   return(
-    <div className="max-w-3xl mx-auto">
-      {/* Meeting mode banner */}
-      {meetingMode&&<div className="bg-indigo-900/40 border border-indigo-700 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"/><span className="text-sm text-indigo-200 font-medium">Meeting in progress</span><span className="text-xs text-indigo-400">{meetingAttendees.join(", ")||"no attendees"}</span></div><button onClick={endMeeting} className="bg-red-900/60 hover:bg-red-800 border border-red-700 px-3 py-1.5 rounded-lg text-xs text-red-200 font-medium">🔴 End Meeting</button></div>}
+    <div className="w-full">
+      {/* Meeting mode banner — live timer */}
+      {meetingMode&&<div className="bg-indigo-900/40 border border-indigo-700 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse flex-shrink-0"/>
+          <span className="text-sm text-indigo-200 font-medium">Meeting in progress</span>
+          {meetingStartTime&&<span className="text-xs text-indigo-300 font-mono bg-indigo-950/40 px-2 py-0.5 rounded" title="Live duration">⏱ {formatDuration(meetingStartTime)/* uses meetingTick to re-render */}{meetingTick>=0?"":""}</span>}
+          {meetingStartTime&&<span className="text-xs text-indigo-400">started {fmtTime(new Date(meetingStartTime))}</span>}
+          <span className="text-xs text-indigo-400">· {meetingAttendees.join(", ")||"no attendees"}</span>
+        </div>
+        <button onClick={endMeeting} className="bg-red-900/60 hover:bg-red-800 border border-red-700 px-3 py-1.5 rounded-lg text-xs text-red-200 font-medium">🔴 End Meeting</button>
+      </div>}
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
-        <h2 className="text-2xl font-bold">Meeting Pack</h2>
-        <div className="flex items-center gap-2">
-          {!meetingMode&&<MeetingSetupPanel members={members} meetingAttendees={meetingAttendees} toggleAttendee={toggleAttendee} startMeeting={startMeeting}/>}
-          {nextMeeting&&<div className="bg-indigo-900/50 border border-indigo-700 rounded-xl px-4 py-2">
-            <div className="text-indigo-300 text-xs">Next Meeting</div>
-            <div className="text-white font-semibold text-sm">{fmtMeetingDate(nextMeeting.date)}{nextMeeting.label&&<span className="text-indigo-300 text-xs ml-1.5">— {nextMeeting.label}</span>}</div>
+      {/* Header — two-line layout: title + meeting badge on top, controls below */}
+      <div className="mb-5">
+        <div className="flex items-baseline justify-between gap-3 flex-wrap mb-3">
+          <h2 className="text-2xl font-bold">Meeting Pack</h2>
+          {nextMeeting&&<div className="bg-indigo-900/50 border border-indigo-700 rounded-xl px-4 py-2 flex items-baseline gap-3">
+            <span className="text-indigo-300 text-xs uppercase tracking-wide">Next Meeting</span>
+            <span className="text-white font-semibold text-sm">{fmtMeetingDate(nextMeeting.date)}</span>
+            {nextMeeting.label&&<span className="text-indigo-300 text-xs">— {nextMeeting.label}</span>}
           </div>}
         </div>
+        {!meetingMode&&<div className="flex justify-end"><MeetingSetupPanel members={members} meetingAttendees={meetingAttendees} toggleAttendee={toggleAttendee} startMeeting={startMeeting}/></div>}
       </div>
 
       <EmojiTracker members={members} emojiLog={emojiLog} setEmojiLog={setEmojiLog} gsClientRef={gsClientRef} gsConnected={gsConnected}/>
@@ -3335,74 +3576,20 @@ function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,
         </div>}
       </div>
 
-      {/* ── MEETING AGENDA ────────────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-indigo-400"/>
-            <span className="font-semibold text-gray-200">Agenda</span>
-            {nextMeeting&&<span className="text-xs text-gray-500">— {fmtMeetingDate(nextMeeting.date)}{nextMeeting.label?" · "+nextMeeting.label:""}</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={()=>{setAgendaText((agendaStructure&&agendaStructure.trim())?agendaStructure.trim():DEFAULT_AGENDA_STRUCTURE);setSaved(false);}} className="text-xs bg-indigo-700 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-indigo-100">📋 Template</button>
-            <button onClick={()=>{setAgendaText("");setSaved(false);}} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-400">Clear</button>
-            <button onClick={saveAgenda} disabled={saving||!agendaText||!agendaText.trim()} className={"text-xs px-3 py-1.5 rounded-lg font-medium "+(saved?"bg-green-700 text-white":"bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50")}>{saving?"Saving...":saved?"✓ Saved":"Save agenda"}</button>
-          </div>
-        </div>
-        <div className="p-4">
-          <textarea value={agendaText} onChange={e=>handleChange(e.target.value)} placeholder="Write the agenda for this meeting..." className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:200,lineHeight:"1.6"}}/>
-          {agendaText&&agendaText.trim()&&<div className="flex justify-end mt-2"><button onClick={()=>{const el=document.createElement("textarea");el.value=agendaText;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);}} className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-gray-400">Copy</button></div>}
-        </div>
-      </div>
-
-      {/* ── PAST MEETINGS ─────────────────────────────────────────────────── */}
-      {pastAgendas.length>0&&<div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-gray-500"/>
-            <span className="font-semibold text-gray-200">Past Meetings</span>
-            <span className="text-xs text-gray-500">{pastAgendas.length}</span>
-          </div>
-        </div>
-        <div className="divide-y divide-gray-800">
-          {visiblePast.map(h=>{
-            const isOpen=expandedHistoryDate===h.date;
-            const preview=h.text?h.text.split("\n").find(l=>l.trim())||"":"";
-            return(
-              <div key={h.date}>
-                <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-800/40 select-none" onClick={()=>setExpandedHistoryDate(isOpen?null:h.date)}>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-200 font-medium">{fmtMeetingDate(h.date)}</span>
-                      {h.label&&<span className="text-xs text-amber-400">★ {h.label}</span>}
-                    </div>
-                    {!isOpen&&preview&&<p className="text-xs text-gray-500 truncate mt-0.5">{preview}</p>}
-                  </div>
-                  <span className="text-gray-600 text-xs flex-shrink-0">{isOpen?"▲":"▼"}</span>
-                </div>
-                {isOpen&&<div className="px-4 pb-4 bg-gray-950/40">
-                  <pre className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed font-sans mb-3">{h.text}</pre>
-                  <div className="flex gap-2">
-                    <button onClick={()=>{const el=document.createElement("textarea");el.value=h.text;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);}} className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-gray-400">Copy</button>
-                    <button onClick={()=>{setAgendaText(h.text);setExpandedHistoryDate(null);setSaved(false);window.scrollTo({top:0,behavior:"smooth"});}} className="text-xs bg-indigo-700 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-indigo-100">Restore to editor</button>
-                  </div>
-                </div>}
-              </div>
-            );
-          })}
-        </div>
-        {pastAgendas.length>3&&<div className="px-4 py-3 border-t border-gray-800">
-          <button onClick={()=>setHistoryExpanded(e=>!e)} className="text-xs text-indigo-400 hover:text-indigo-300">
-            {historyExpanded?"Show less ▲":"Show "+( pastAgendas.length-3)+" more ▼"}
-          </button>
-        </div>}
-      </div>}
+      {/* ── MEETING AGENDA — selectable date ─────────────────────────────── */}
+      <AgendaPanel
+        nextMeeting={nextMeeting} agendaText={agendaText} setAgendaText={setAgendaText}
+        agendaStructure={agendaStructure} agendaHistory={agendaHistory}
+        setAgendaHistory={setAgendaHistory} saveAgenda={saveAgenda} saving={saving} saved={saved}
+        handleChange={handleChange} setSaved={setSaved} fmtMeetingDate={fmtMeetingDate}
+        scheduledMeetings={scheduledMeetings} setMeetingSchedule={setMeetingSchedule} meetingSchedule={meetingSchedule}
+      />
 
       {/* ── WORKSTREAM STATUS — health + per-task discussion notes ───────── */}
       <WorkstreamStatusSection
         tasks={tasks} setTasks={setTasks} workstreams={workstreams} getMember={getMember}
         workstreamHealth={workstreamHealth} setWorkstreamHealth={setWorkstreamHealth}
-        nextMeeting={nextMeeting} jumpToTask={jumpToTask}
+        nextMeeting={nextMeeting} jumpToTask={jumpToTask} meetingMode={meetingMode}
       />
 
       {/* ── DECISIONS LOGGED THIS MEETING ─────────────────────────────────── */}
@@ -3413,21 +3600,21 @@ function MeetingPack({tasks,setTasks,workstreams,getMember,getStatus,jumpToTask,
         meetingMode={meetingMode} meetingAttendees={meetingAttendees}
       />
 
-      <Sec title="Action Required" items={actionRequired} color="bg-red-500" empty="Nothing overdue or due before next meeting. 🎉"/>
       <Sec title="Complete — Requires Review" items={needsReview} color="bg-green-500" empty="None awaiting review."/>
+      <Sec title="Action Required" items={actionRequired} color="bg-red-500" empty="Nothing overdue or due before next meeting. 🎉"/>
       <Sec title="Not Reviewed Since Last Thursday" items={notReviewed} color="bg-yellow-400" empty="All reviewed recently."/>
     </div>
   );
 }
 
 // ── WorkstreamStatusSection ─────────────────────────────────────────────────
-function WorkstreamStatusSection({tasks,setTasks,workstreams,getMember,workstreamHealth,setWorkstreamHealth,nextMeeting,jumpToTask}){
+function WorkstreamStatusSection({tasks,setTasks,workstreams,getMember,workstreamHealth,setWorkstreamHealth,nextMeeting,jumpToTask,meetingMode}){
   const meetingDateKey=nextMeeting?nextMeeting.date:fmtDate(getNextThursday(new Date()));
   // Group tasks per workstream and per "section" (Blocked / In Progress / Pending / Awaiting Review)
   function sectionFor(status){
     if(status==="Blocked") return "blocked";
     if(status==="Ongoing"||status==="never-ending……") return "in_progress";
-    if(status==="Not Started"||status==="Scheduled - TBD upcoming") return "pending";
+    if(status==="Not Started"||status==="Scheduled - TBD upcoming"||status==="Pending Ext Factors") return "pending";
     if(status==="Complete - RR") return "review";
     return null; // hide Complete, Archive - Complete, Archived
   }
@@ -3457,7 +3644,7 @@ function WorkstreamStatusSection({tasks,setTasks,workstreams,getMember,workstrea
             health={workstreamHealth[ws.name]||{health:"",status:""}}
             onHealthChange={v=>setWorkstreamHealth(h=>Object.assign({},h,{[ws.name]:Object.assign({},h[ws.name]||{},v,{updatedAt:new Date().toISOString()})}))}
             getMember={getMember} jumpToTask={jumpToTask}
-            setTasks={setTasks} meetingDateKey={meetingDateKey}
+            setTasks={setTasks} meetingDateKey={meetingDateKey} meetingMode={meetingMode}
           />
         ))}
       </div>
@@ -3465,8 +3652,16 @@ function WorkstreamStatusSection({tasks,setTasks,workstreams,getMember,workstrea
   );
 }
 
-function WorkstreamPanel({ws,tasks,sectionFor,SECTION_META,HEALTH_META,health,onHealthChange,getMember,jumpToTask,setTasks,meetingDateKey}){
-  const[expanded,setExpanded]=useState(true);
+function WorkstreamPanel({ws,tasks,sectionFor,SECTION_META,HEALTH_META,health,onHealthChange,getMember,jumpToTask,setTasks,meetingDateKey,meetingMode}){
+  // Default expanded if this workstream has anything that needs attention this meeting:
+  // - Blocked tasks, awaiting review, or tasks overdue/due-before-next-meeting
+  const _now=new Date();
+  const _hasAttention=tasks.some(t=>{
+    if(t.status==="Blocked"||t.status==="Complete - RR")return true;
+    if(t.deadline){const d=parseDate(t.deadline);if(d){const days=Math.round((d-_now)/86400000);if(days<=7)return true;}}
+    return false;
+  });
+  const[expanded,setExpanded]=useState(_hasAttention);
   const[editingHealth,setEditingHealth]=useState(false);
   const[draftStatus,setDraftStatus]=useState(health.status||"");
   const[draftHealth,setDraftHealth]=useState(health.health||"");
@@ -3512,31 +3707,33 @@ function WorkstreamPanel({ws,tasks,sectionFor,SECTION_META,HEALTH_META,health,on
       </div>}
       {!editingHealth&&health.status&&<p className="text-xs text-gray-400 italic mb-3 ml-6 leading-relaxed">"{health.status}"</p>}
 
-      {/* Task sections */}
-      {expanded&&<div className="space-y-3">
-        {visibleCount===0&&<p className="text-xs text-gray-600 ml-6">No active tasks in this workstream.</p>}
-        {["blocked","in_progress","pending","review"].map(secKey=>{
-          const items=grouped[secKey];if(items.length===0)return null;
-          const m=SECTION_META[secKey];
-          return(
-            <div key={secKey}>
-              <div className="flex items-center gap-2 mb-1.5 ml-1">
-                <span className="text-base">{m.icon}</span>
-                <span className={"text-xs font-semibold uppercase tracking-wide "+m.color}>{m.label}</span>
-                <span className="text-xs text-gray-600">{items.length}</span>
+      {/* Task sections — side by side, 4 columns */}
+      {expanded&&<div>
+        {visibleCount===0&&<div className="text-center py-6 text-gray-600"><div className="text-2xl mb-1 opacity-40">📭</div><p className="text-xs">No active tasks in this workstream.</p></div>}
+        {visibleCount>0&&<div className="grid gap-3" style={{gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>
+          {["blocked","in_progress","pending","review"].map(secKey=>{
+            const items=grouped[secKey];
+            const m=SECTION_META[secKey];
+            return(
+              <div key={secKey} className="bg-gray-950/40 border border-gray-800 rounded-lg p-2.5 flex flex-col" style={{minHeight:80}}>
+                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-800">
+                  <span className="text-base">{m.icon}</span>
+                  <span className={"text-xs font-semibold uppercase tracking-wide flex-1 "+m.color}>{m.label}</span>
+                  <span className="text-xs text-gray-600 bg-gray-800 px-1.5 py-0.5 rounded">{items.length}</span>
+                </div>
+                <div className="space-y-1.5 flex-1">
+                  {items.length===0?<p className="text-xs text-gray-700 italic">—</p>:items.map(t=><TaskRow key={t.id} t={t} getMember={getMember} jumpToTask={jumpToTask} setTasks={setTasks} meetingDateKey={meetingDateKey} meetingMode={meetingMode}/>)}
+                </div>
               </div>
-              <div className="space-y-1.5 ml-6">
-                {items.map(t=><TaskRow key={t.id} t={t} getMember={getMember} jumpToTask={jumpToTask} setTasks={setTasks} meetingDateKey={meetingDateKey}/>)}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>}
       </div>}
     </div>
   );
 }
 
-function TaskRow({t,getMember,jumpToTask,setTasks,meetingDateKey}){
+function TaskRow({t,getMember,jumpToTask,setTasks,meetingDateKey,meetingMode}){
   const[showNote,setShowNote]=useState(false);
   const meetingNotes=t.meetingNotes||[];
   const noteForThisMeeting=meetingNotes.find(n=>n.date===meetingDateKey);
@@ -3551,26 +3748,41 @@ function TaskRow({t,getMember,jumpToTask,setTasks,meetingDateKey}){
       if(x.id!==t.id)return x;
       const existing=(x.meetingNotes||[]).filter(n=>n.date!==meetingDateKey);
       const newNotes=text.trim()?[{date:meetingDateKey,text:text,savedAt:new Date().toISOString()},...existing]:existing;
-      return Object.assign({},x,{meetingNotes:newNotes,lastModified:new Date().toISOString()});
+      // Cap at 20 most recent meeting notes; older ones get appended to task.notes for permanence
+      const MAX_NOTES=20;
+      let newTaskNotes=x.notes||"";
+      let kept=newNotes;
+      if(newNotes.length>MAX_NOTES){
+        const archived=newNotes.slice(MAX_NOTES);
+        const archivedText=archived.map(n=>"[archived note from "+n.date+"]: "+n.text).join("\n");
+        newTaskNotes=(newTaskNotes?newTaskNotes+"\n\n":"")+archivedText;
+        kept=newNotes.slice(0,MAX_NOTES);
+      }
+      return Object.assign({},x,{meetingNotes:kept,notes:newTaskNotes,lastModified:new Date().toISOString()});
     }));
   }
+  // In meeting mode the textarea is always visible and larger
+  const showTextarea = meetingMode || showNote;
+  const textareaMinHeight = meetingMode ? 90 : 60;
   return(
-    <div className="bg-gray-800/40 border border-gray-800 rounded-lg overflow-hidden">
+    <div className={"bg-gray-800/40 border rounded-lg overflow-hidden "+(meetingMode?"border-indigo-800/40":"border-gray-800")}>
       <div className="flex items-center gap-2 px-3 py-2">
         <span className="flex-1 text-sm text-gray-200 truncate cursor-pointer hover:text-white" onClick={()=>jumpToTask(t.id)}>{t.name}</span>
         {mb&&<span className={"text-xs px-1.5 py-0.5 rounded "+mb.bg+" "+(mb.text||"text-white")} title={t.assignee}>{(t.assignee||"").split(" ").map(p=>p[0]).join("").slice(0,2)}</span>}
         {t.deadline&&<span className="text-xs text-gray-500">{t.deadline.slice(5)}</span>}
-        <button onClick={()=>setShowNote(s=>!s)} title="Add meeting note" className={"text-xs px-2 py-0.5 rounded "+(latestNote?"bg-indigo-900/50 text-indigo-300":"bg-gray-700 text-gray-400 hover:text-indigo-300")}>
+        {!meetingMode&&<button onClick={()=>setShowNote(s=>!s)} aria-label={showNote?"Hide note":"Add meeting note"} title="Add meeting note" className={"text-xs px-2 py-0.5 rounded "+(latestNote?"bg-indigo-900/50 text-indigo-300":"bg-gray-700 text-gray-400 hover:text-indigo-300")}>
           {meetingNotes.length>0?"💬 "+meetingNotes.length:"+ note"}
-        </button>
+        </button>}
+        {meetingMode&&meetingNotes.length>0&&<span className="text-xs px-2 py-0.5 rounded bg-indigo-900/50 text-indigo-300" title={meetingNotes.length+" past notes"}>💬 {meetingNotes.length}</span>}
       </div>
-      {latestNote&&!showNote&&<div className="px-3 pb-2 -mt-1 ml-1">
+      {latestNote&&!showTextarea&&<div className="px-3 pb-2 -mt-1 ml-1">
         <p className="text-xs text-indigo-300/80 italic leading-relaxed">"{latestNote.text}" <span className="text-gray-600 not-italic">— {fmtMeetingShort(latestNote.date)}</span></p>
       </div>}
-      {showNote&&<div className="px-3 pb-3 bg-gray-900/40 border-t border-gray-800 pt-2.5">
+      {showTextarea&&<div className={"px-3 pb-3 border-t pt-2.5 "+(meetingMode?"bg-indigo-950/20 border-indigo-900/40":"bg-gray-900/40 border-gray-800")}>
         <textarea value={draft} onChange={e=>saveNote(e.target.value)}
-          placeholder="Discussion note for this meeting (auto-saves)..."
-          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:60,lineHeight:"1.5"}}/>
+          placeholder={meetingMode?"Notes for this meeting — auto-saves to the task":"Discussion note for this meeting (auto-saves)..."}
+          aria-label={"Meeting note for "+t.name}
+          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y leading-relaxed" style={{minHeight:textareaMinHeight}}/>
         {meetingNotes.length>1&&<details className="mt-2"><summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-400">Past notes ({meetingNotes.length-(noteForThisMeeting?1:0)})</summary>
           <div className="mt-1.5 space-y-1.5">{meetingNotes.filter(n=>n.date!==meetingDateKey).slice(0,5).map((n,i)=><div key={i} className="text-xs text-gray-500 italic border-l-2 border-gray-700 pl-2">"{n.text}" <span className="text-gray-600 not-italic">— {fmtMeetingShort(n.date)}</span></div>)}</div>
         </details>}
@@ -3579,10 +3791,109 @@ function TaskRow({t,getMember,jumpToTask,setTasks,meetingDateKey}){
   );
 }
 
+
+// ── AgendaPanel: agenda for a date the user can change (defaults to next meeting) ─
+function AgendaPanel({nextMeeting,agendaText,setAgendaText,agendaStructure,agendaHistory,setAgendaHistory,saveAgenda,saving,saved,handleChange,setSaved,fmtMeetingDate,scheduledMeetings,setMeetingSchedule,meetingSchedule}){
+  const todayStr=fmtDate(new Date());
+  // Selected date defaults to nextMeeting.date, but user can change it
+  const[selectedDate,setSelectedDate]=useState(nextMeeting?nextMeeting.date:fmtDate(getNextThursday(new Date())));
+  // When the next meeting changes (e.g. after a save), keep selectedDate aligned unless user overrode
+  const[userPicked,setUserPicked]=useState(false);
+  useEffect(()=>{if(!userPicked&&nextMeeting)setSelectedDate(nextMeeting.date);},[nextMeeting&&nextMeeting.date,userPicked]);
+
+  // Find the agenda text for the selected date — from history or current editor state
+  // Editor text is "live" only for the date matching nextMeeting.date.
+  // For other dates, show their saved history entry (read-only unless user explicitly switches).
+  const isCurrentDate=nextMeeting&&selectedDate===nextMeeting.date;
+  const histEntry=agendaHistory.find(h=>h.date===selectedDate);
+
+  // The text displayed in the textarea
+  const displayText=isCurrentDate?agendaText:(histEntry?histEntry.text:"");
+
+  // List of all dates with content (history) plus future scheduled meetings
+  const allDates=Array.from(new Set([
+    ...scheduledMeetings.filter(m=>!m.cancelled).map(m=>m.date),
+    ...agendaHistory.map(h=>h.date),
+  ])).sort();
+
+  function pickDate(d){setSelectedDate(d);setUserPicked(true);}
+
+  function saveCurrentToSelected(){
+    // If user is viewing a non-current date and edits, save to history under that date
+    if(isCurrentDate){saveAgenda();return;}
+    if(!displayText||!displayText.trim())return;
+    setAgendaHistory(h=>{
+      const filtered=h.filter(x=>x.date!==selectedDate);
+      return [{date:selectedDate,label:"",savedAt:new Date().toISOString(),text:displayText},...filtered].slice(0,52);
+    });
+  }
+
+  // For non-current dates, allow editing the history entry directly
+  const[draftHistText,setDraftHistText]=useState("");
+  useEffect(()=>{if(!isCurrentDate)setDraftHistText(histEntry?histEntry.text:"");},[selectedDate,histEntry&&histEntry.text,isCurrentDate]);
+  function saveDraftHist(text){
+    setDraftHistText(text);
+    setAgendaHistory(h=>{
+      const filtered=h.filter(x=>x.date!==selectedDate);
+      if(!text.trim())return filtered;
+      return [{date:selectedDate,label:"",savedAt:new Date().toISOString(),text},...filtered].slice(0,52);
+    });
+  }
+
+  // Add a one-off meeting for the picked date if user types one in
+  const[customDate,setCustomDate]=useState("");
+  function pickCustom(){
+    if(!customDate)return;
+    pickDate(customDate);
+    // If not in schedule, add as one-off
+    if(!scheduledMeetings.find(m=>m.date===customDate)){
+      setMeetingSchedule(s=>[...s,{id:uid("mtg"),date:customDate,oneOff:true,cancelled:false,label:""}]);
+    }
+    setCustomDate("");
+  }
+
+  return(
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 flex-wrap gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="w-2 h-2 rounded-full bg-indigo-400 flex-shrink-0"/>
+          <span className="font-semibold text-gray-200">Agenda</span>
+          <span className="text-xs text-gray-500">— viewing {fmtMeetingDate(selectedDate)}</span>
+          {!isCurrentDate&&<span className="text-xs text-amber-400">past/other meeting</span>}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <select value={selectedDate} onChange={e=>pickDate(e.target.value)} className="text-xs bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-gray-200 focus:outline-none focus:border-indigo-500">
+            {allDates.map(d=><option key={d} value={d}>{fmtMeetingDate(d)}{nextMeeting&&d===nextMeeting.date?" (next)":""}</option>)}
+          </select>
+          <input type="date" value={customDate} onChange={e=>setCustomDate(e.target.value)} className="text-xs bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-gray-200 focus:outline-none focus:border-indigo-500" title="Pick any date"/>
+          {customDate&&<button onClick={pickCustom} className="text-xs bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded-lg text-white">Go</button>}
+          {isCurrentDate&&<>
+            <button onClick={()=>{setAgendaText((agendaStructure&&agendaStructure.trim())?agendaStructure.trim():DEFAULT_AGENDA_STRUCTURE);setSaved(false);}} className="text-xs bg-indigo-700 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-indigo-100">📋 Template</button>
+            <button onClick={()=>{setAgendaText("");setSaved(false);}} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-400">Clear</button>
+            <button onClick={saveAgenda} disabled={saving||!agendaText||!agendaText.trim()} className={"text-xs px-3 py-1.5 rounded-lg font-medium "+(saved?"bg-green-700 text-white":"bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50")}>{saving?"Saving...":saved?"✓ Saved":"Save agenda"}</button>
+          </>}
+        </div>
+      </div>
+      <div className="p-4">
+        {isCurrentDate
+          ?<textarea value={agendaText} onChange={e=>handleChange(e.target.value)} placeholder="Write the agenda for this meeting..." className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:200,lineHeight:"1.6"}}/>
+          :<textarea value={draftHistText} onChange={e=>saveDraftHist(e.target.value)} placeholder="No agenda saved for this date — type to create one. Auto-saves." className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-amber-500 resize-y" style={{minHeight:200,lineHeight:"1.6"}}/>
+        }
+        {(displayText||draftHistText)&&<div className="flex items-center gap-2 mt-2 justify-between flex-wrap">
+          <span className="text-xs text-gray-500">{isCurrentDate?"":"Auto-saving to history."}</span>
+          <button onClick={()=>{const text=isCurrentDate?agendaText:draftHistText;const el=document.createElement("textarea");el.value=text;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);}} className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-gray-400">Copy</button>
+        </div>}
+      </div>
+    </div>
+  );
+}
+
 function fmtMeetingShort(ds){const d=parseDate(ds);if(!d)return ds;return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"});}
 
 // ── MeetingDecisions: log a decision in-meeting, tagged with meeting date ────
 function MeetingDecisions({decisions,setDecisions,members,workstreams,nextMeeting,addLog,meetingMode,meetingAttendees}){
+  const confirmAsync=useConfirm();
+  const toast=useToast();
   const meetingDateKey=nextMeeting?nextMeeting.date:fmtDate(getNextThursday(new Date()));
   const meetingLabel=nextMeeting?nextMeeting.label:"";
   // Decisions tagged with this meeting's date
@@ -3603,11 +3914,15 @@ function MeetingDecisions({decisions,setDecisions,members,workstreams,nextMeetin
     };
     setDecisions(d=>[dec,...d]);
     addLog("decision","Decision (meeting): "+text.slice(0,60));
-    setText("");setNotes("");setWorkstream("");setShowForm(false);
+    toast("Decision logged","success");
+    setText("");setNotes("");setWorkstream("");
+    if(!meetingMode)setShowForm(false);
   }
-  function removeDecision(id){
-    if(!confirm("Remove this decision?"))return;
+  async function removeDecision(id){
+    const ok=await confirmAsync({title:"Remove decision?",message:"This will remove the decision from the log.",confirmLabel:"Remove",danger:true});
+    if(!ok)return;
     setDecisions(d=>d.filter(x=>x.id!==id));
+    toast("Decision removed","success");
   }
   return(
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4">
@@ -3617,11 +3932,11 @@ function MeetingDecisions({decisions,setDecisions,members,workstreams,nextMeetin
           <span className="font-semibold text-gray-200">Decisions This Meeting</span>
           <span className="text-xs text-gray-500">{decisionsThisMeeting.length}</span>
         </div>
-        <button onClick={()=>setShowForm(s=>!s)} className="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-white font-medium">
+        {!meetingMode&&<button onClick={()=>setShowForm(s=>!s)} className="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-white font-medium">
           {showForm?"Cancel":"+ Log decision"}
-        </button>
+        </button>}
       </div>
-      {showForm&&<div className="p-4 border-b border-gray-800 space-y-3 bg-gray-950/40">
+      {(showForm||meetingMode)&&<div className="p-4 border-b border-gray-800 space-y-3 bg-gray-950/40">
         <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="What was decided?" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:60}}/>
         <div className="grid grid-cols-2 gap-2">
           <select value={madeBy} onChange={e=>setMadeBy(e.target.value)} className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-200 focus:outline-none">
@@ -3633,8 +3948,9 @@ function MeetingDecisions({decisions,setDecisions,members,workstreams,nextMeetin
           </select>
         </div>
         <textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Rationale (optional)" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 resize-y" style={{minHeight:40}}/>
-        <div className="flex justify-end">
-          <button onClick={submit} disabled={!text.trim()} className="text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 px-4 py-1.5 rounded-lg text-white font-medium">Save</button>
+        <div className="flex justify-end gap-2">
+          {meetingMode&&<button onClick={()=>{setText("");setNotes("");setWorkstream("");}} disabled={!text.trim()&&!notes.trim()} className="text-xs bg-gray-700 hover:bg-gray-600 disabled:opacity-40 px-3 py-1.5 rounded-lg text-gray-300">Clear</button>}
+          <button onClick={submit} disabled={!text.trim()} className="text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 px-4 py-1.5 rounded-lg text-white font-medium">{meetingMode?"Log decision":"Save"}</button>
         </div>
       </div>}
       <div className="divide-y divide-gray-800">
@@ -3706,7 +4022,7 @@ function SettingsPanel({workstreams,setWorkstreams,statuses,setStatuses,members,
   return(
     <div className="max-w-5xl">
       <div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Settings</h2><span className="text-xs text-gray-600 font-mono bg-gray-900 border border-gray-800 px-2.5 py-1 rounded-lg">v7</span></div>
-      <div className="flex gap-5 mb-6"><div className="w-36 flex-shrink-0 space-y-3">{STABS_GROUPS.map(g=><div key={g}><div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 px-2">{g}</div>{STABS_DATA.filter(t=>t.group===g).map(t=><button key={t.id} onClick={()=>{setSTab(t.id);cancelEdit();}} style={sTab===t.id?{display:"block",width:"100%",textAlign:"left",padding:"6px 10px",borderRadius:8,fontSize:"0.75rem",fontWeight:600,background:"#0036db",color:"#ffffff",border:"none",cursor:"pointer"}:{display:"block",width:"100%",textAlign:"left",padding:"6px 10px",borderRadius:8,fontSize:"0.75rem",fontWeight:400,background:"transparent",color:"#718096",border:"none",cursor:"pointer"}}>{t.label}</button>)}</div>)}</div><div className="flex-1 min-w-0">
+      <div className="flex gap-5 mb-6"><div className="w-36 flex-shrink-0 space-y-3">{STABS_GROUPS.map(g=><div key={g}><div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 px-2">{g}</div>{STABS_DATA.filter(t=>t.group===g).map(t=><button key={t.id} onClick={()=>{setSTab(t.id);cancelEdit();}} className={"ls-settings-nav-btn"+(sTab===t.id?" active":"")}>{t.label}</button>)}</div>)}</div><div className="flex-1 min-w-0">
 
       {sTab==="workstreams"&&<div>
         <div className="flex items-center justify-between mb-4"><p className="text-gray-400 text-sm">Edit names and colours. Double-click to edit.</p><div className="flex gap-2">{sEditMode?<><button onClick={()=>saveEdits(setWorkstreams)} className="text-xs bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg">Save All</button><button onClick={cancelEdit} className="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Cancel</button></>:<button onClick={()=>enterEdit(workstreams)} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">✏️ Edit All</button>}</div></div>
@@ -3814,7 +4130,7 @@ function SettingsPanel({workstreams,setWorkstreams,statuses,setStatuses,members,
       </div>}
 
       {sTab==="epics"&&<div>
-        <div className="flex items-center justify-between mb-4"><p className="text-gray-400 text-sm">Edit epics. Double-click to edit.</p><div className="flex gap-2">{sEditMode?<><button onClick={()=>{setEpics(epics.map((ep,i)=>sDrafts["ep"+i]??ep));cancelEdit();}} className="text-xs bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg">Save All</button><button onClick={cancelEdit} className="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Cancel</button></>:<button onClick={()=>{const d={};epics.forEach((ep,i)=>d["ep"+i]=ep);setSDrafts(d);setSEditMode(true);}} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">✏️ Edit All</button>}</div></div>
+        <div className="flex items-center justify-between mb-4"><p className="text-gray-400 text-sm">Edit epics. Double-click to edit.</p><div className="flex gap-2">{sEditMode?<><button onClick={()=>{setEpics(prev=>prev.map((ep,i)=>sDrafts["ep"+i]??ep));cancelEdit();}} className="text-xs bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg">Save All</button><button onClick={cancelEdit} className="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Cancel</button></>:<button onClick={()=>{const d={};epics.forEach((ep,i)=>d["ep"+i]=ep);setSDrafts(d);setSEditMode(true);}} className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">✏️ Edit All</button>}</div></div>
         <div className="space-y-3">{epics.map((ep,i)=><div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">{sEditMode?<input value={sDrafts["ep"+i]??ep} onChange={e=>setSDrafts(d=>Object.assign({},d,{["ep"+i]:e.target.value}))} className="flex-1 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none"/>:<span className="flex-1 text-gray-200 cursor-pointer" onDoubleClick={()=>{const d={};epics.forEach((ep,j)=>d["ep"+j]=ep);setSDrafts(d);setSEditMode(true);}}>{ep}</span>}<button onClick={()=>setEpics(es=>es.filter((_,j)=>j!==i))} className="text-xs bg-red-900 hover:bg-red-800 px-2 py-1 rounded text-red-300">Del</button></div>)}</div>
         <button onClick={()=>setEpics(e=>[...e,"New Epic"])} className="mt-3 text-sm text-indigo-400 hover:text-indigo-300">+ Add</button>
       </div>}
@@ -4192,6 +4508,167 @@ const initTasks=[
 ];
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
+
+// ── Focus trap for modals (accessibility) ────────────────────────────────
+function useFocusTrap(active){
+  const ref=useRef(null);
+  useEffect(()=>{
+    if(!active||!ref.current)return;
+    const node=ref.current;
+    const prev=document.activeElement;
+    function getFocusable(){
+      return Array.from(node.querySelectorAll('a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter(el=>!el.hasAttribute("disabled")&&el.offsetParent!==null);
+    }
+    // Focus first focusable element on open
+    setTimeout(()=>{const fs=getFocusable();if(fs.length)fs[0].focus();},0);
+    function onKey(e){
+      if(e.key!=="Tab")return;
+      const fs=getFocusable();
+      if(!fs.length)return;
+      const first=fs[0],last=fs[fs.length-1];
+      if(e.shiftKey){
+        if(document.activeElement===first){e.preventDefault();last.focus();}
+      }else{
+        if(document.activeElement===last){e.preventDefault();first.focus();}
+      }
+    }
+    node.addEventListener("keydown",onKey);
+    return()=>{
+      node.removeEventListener("keydown",onKey);
+      if(prev&&prev.focus)try{prev.focus();}catch(e){}
+    };
+  },[active]);
+  return ref;
+}
+
+
+// ── Toast notification system ─────────────────────────────────────────────
+const ToastContext = React.createContext(null);
+function useToast(){ return React.useContext(ToastContext) || ((m,t)=>console.log("[toast]",t,m)); }
+function ToastProvider({children}){
+  const[toasts,setToasts]=useState([]);
+  const idRef=useRef(0);
+  const push=React.useCallback((message,type)=>{
+    const id=++idRef.current;
+    setToasts(t=>[...t,{id,message,type:type||"info"}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)), type==="error"?6000:3500);
+  },[]);
+  const dismiss=React.useCallback(id=>setToasts(t=>t.filter(x=>x.id!==id)),[]);
+  return (
+    <ToastContext.Provider value={push}>
+      {children}
+      <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,display:"flex",flexDirection:"column",gap:8,maxWidth:420}} aria-live="polite" aria-atomic="true">
+        {toasts.map(t=>{
+          const colors={
+            info:{bg:"#1f2937",border:"#374151",text:"#e5e7eb",icon:"ℹ"},
+            success:{bg:"#14532d",border:"#16a34a",text:"#dcfce7",icon:"✓"},
+            error:{bg:"#7f1d1d",border:"#dc2626",text:"#fee2e2",icon:"⚠"},
+            warning:{bg:"#78350f",border:"#d97706",text:"#fef3c7",icon:"⚠"},
+          };
+          const c=colors[t.type]||colors.info;
+          return (
+            <div key={t.id} role="status" style={{background:c.bg,border:"1px solid "+c.border,color:c.text,padding:"10px 14px",borderRadius:10,fontSize:"0.875rem",display:"flex",gap:10,alignItems:"flex-start",boxShadow:"0 8px 24px rgba(0,0,0,0.25)",animation:"toastIn 0.2s ease-out"}}>
+              <span style={{fontSize:"1rem",lineHeight:1.2,flexShrink:0}}>{c.icon}</span>
+              <span style={{flex:1,lineHeight:1.4}}>{t.message}</span>
+              <button onClick={()=>dismiss(t.id)} aria-label="Dismiss notification" style={{background:"transparent",border:"none",color:c.text,cursor:"pointer",opacity:0.6,fontSize:"1rem",padding:0,lineHeight:1}}>×</button>
+            </div>
+          );
+        })}
+      </div>
+    </ToastContext.Provider>
+  );
+}
+
+// ── Confirm dialog system (replaces window.confirm) ──────────────────────
+const ConfirmContext = React.createContext(null);
+function useConfirm(){
+  const ctx = React.useContext(ConfirmContext);
+  // Fallback to window.confirm if not in provider (shouldn't happen)
+  return ctx || (async (opts)=>window.confirm(typeof opts==="string"?opts:opts.message));
+}
+function ConfirmProvider({children}){
+  const[state,setState]=useState(null); // {title, message, confirmLabel, danger, resolve}
+  const confirm=React.useCallback((opts)=>{
+    return new Promise(resolve=>{
+      const o = typeof opts==="string"?{message:opts}:opts;
+      setState({
+        title:o.title||"Confirm",
+        message:o.message||"Are you sure?",
+        confirmLabel:o.confirmLabel||"Confirm",
+        cancelLabel:o.cancelLabel||"Cancel",
+        danger:o.danger||false,
+        resolve,
+      });
+    });
+  },[]);
+  function close(answer){
+    if(state) state.resolve(answer);
+    setState(null);
+  }
+  // ESC + Enter handling — capture phase so we run before underlying modal escape handlers
+  useEffect(()=>{
+    if(!state)return;
+    function onKey(e){
+      if(e.key==="Escape"){e.stopPropagation();e.preventDefault();close(false);}
+      if(e.key==="Enter"){e.stopPropagation();e.preventDefault();close(true);}
+    }
+    document.addEventListener("keydown",onKey,true);
+    return ()=>document.removeEventListener("keydown",onKey,true);
+  },[state]);
+  return (
+    <ConfirmContext.Provider value={confirm}>
+      {children}
+      {state && (
+        <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" ref={useFocusTrap(!!state)} onClick={e=>{if(e.target===e.currentTarget)close(false);}}
+          style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:10000,padding:"1rem"}}>
+          <div style={{background:"var(--bg-card,#fff)",border:"1px solid var(--ls-border,#d4dae8)",borderRadius:12,padding:"20px 22px",maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.4)"}}>
+            <h3 id="confirm-title" style={{margin:"0 0 8px 0",fontSize:"1.05rem",fontWeight:700,color:"var(--ls-black,#252525)"}}>{state.title}</h3>
+            <p style={{margin:"0 0 18px 0",fontSize:"0.9rem",lineHeight:1.5,color:"var(--text-faint,#4a5568)"}}>{state.message}</p>
+            <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
+              <button onClick={()=>close(false)} autoFocus style={{padding:"8px 14px",borderRadius:8,border:"1px solid var(--ls-border,#d4dae8)",background:"transparent",color:"var(--ls-black,#252525)",fontSize:"0.85rem",cursor:"pointer",fontFamily:"inherit"}}>{state.cancelLabel}</button>
+              <button onClick={()=>close(true)} style={{padding:"8px 14px",borderRadius:8,border:"none",background:state.danger?"#dc2626":"var(--ls-blue,#0036db)",color:"#ffffff",fontSize:"0.85rem",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{state.confirmLabel}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </ConfirmContext.Provider>
+  );
+}
+
+// ── Error Boundary ────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props){super(props);this.state={error:null,info:null};}
+  static getDerivedStateFromError(error){return {error};}
+  componentDidCatch(error,info){console.error("[ErrorBoundary]",error,info);this.setState({info});}
+  reset = ()=>{this.setState({error:null,info:null});}
+  render(){
+    if(this.state.error){
+      return (
+        <div style={{padding:"40px 24px",fontFamily:"sans-serif",maxWidth:720,margin:"0 auto",color:"#252525"}}>
+          <h1 style={{color:"#dc2626",fontSize:"1.5rem",marginBottom:8}}>Something went wrong</h1>
+          <p style={{color:"#4a5568",marginBottom:16,lineHeight:1.5}}>The app hit an unexpected error. Your data is safe — it\u2019s saved in your browser and Sheets. Try reloading, or click Reset to clear the error and continue.</p>
+          <details style={{marginBottom:16,fontSize:"0.85rem",background:"#f3f4f6",padding:12,borderRadius:8,border:"1px solid #e5e7eb"}}>
+            <summary style={{cursor:"pointer",fontWeight:600,marginBottom:8}}>Error details (for debugging)</summary>
+            <pre style={{fontSize:"0.75rem",whiteSpace:"pre-wrap",wordBreak:"break-word",margin:"8px 0 0 0",color:"#7f1d1d"}}>{String(this.state.error&&this.state.error.stack||this.state.error)}</pre>
+          </details>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>window.location.reload()} style={{padding:"10px 18px",background:"#0036db",color:"#fff",border:"none",borderRadius:8,fontSize:"0.9rem",fontWeight:600,cursor:"pointer"}}>Reload App</button>
+            <button onClick={this.reset} style={{padding:"10px 18px",background:"transparent",color:"#252525",border:"1px solid #d4dae8",borderRadius:8,fontSize:"0.9rem",cursor:"pointer"}}>Try Again</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// Toast keyframes
+if(typeof document!=="undefined"&&!document.getElementById("ls-toast-keyframes")){
+  const s=document.createElement("style");s.id="ls-toast-keyframes";
+  s.textContent="@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}";
+  document.head.appendChild(s);
+}
+
 function App(){
   const[tasks,setTasksRaw]=useState(initTasks);
 
@@ -4228,6 +4705,8 @@ function App(){
     });
     if(changed||updated.length!==tasks.length) setTasksRaw(updated);
   },[]);
+  const confirmAsync=useConfirm();
+  const toast=useToast();
   const[view,setView]=useState("work");const[workSubTab,setWorkSubTab]=useState("kanban");
   const[workstreams,setWorkstreams]=useState(DEFAULT_WORKSTREAMS);
   const[statuses,setStatuses]=useState(DEFAULT_STATUSES);
@@ -4252,9 +4731,20 @@ function App(){
   const[listSort,setListSort]=useState({col:"priority",dir:"asc"});
   const[showModal,setShowModal]=useState(false);
   const[editTask,setEditTask]=useState(null);
+  // Close task modal on Escape
+  useEffect(()=>{
+    if(!showModal)return;
+    function onKey(e){if(e.key==="Escape")setShowModal(false);}
+    document.addEventListener("keydown",onKey);
+    return()=>document.removeEventListener("keydown",onKey);
+  },[showModal]);
   const[highlightTask,setHighlightTask]=useState(null);
   const[dragTask,setDragTask]=useState(null);
   const[meetingMode,setMeetingMode]=useState(false);
+  const[meetingStartTime,setMeetingStartTime]=useState(null);
+  // Tick every second while meeting is live so we can show duration
+  const[meetingTick,setMeetingTick]=useState(0);
+  useEffect(()=>{if(!meetingMode)return;const i=setInterval(()=>setMeetingTick(t=>t+1),1000);return()=>clearInterval(i);},[meetingMode]);
   const[meetingAttendees,setMeetingAttendees]=useState([]);
   // Sheets sync
   const[gsUrl,setGsUrl]=useState(()=>localStorage.getItem("gs_url")||"https://script.google.com/macros/s/AKfycbyABvaUEtwInQGGALr7KGf8aqsWVIRA7XqtAGYo1I7zSZsfOT8MYudOlBnT0wSkajUJDQ/exec");
@@ -4268,7 +4758,7 @@ function App(){
   const[theme,setTheme]=useState(()=>{try{return localStorage.getItem('ls_theme')||'light';}catch{return 'light';}});
   useEffect(()=>{
     document.documentElement.setAttribute("data-theme",theme);
-    localStorage.setItem("ls_theme",theme);
+    try{localStorage.setItem("ls_theme",theme);}catch(e){}
   },[theme]);
 
   const[settingsTab,setSettingsTab]=useState("workstreams"); // controlled from outside
@@ -4276,28 +4766,28 @@ function App(){
     try{const d=localStorage.getItem("task_defaults");return d?JSON.parse(d):{workstream:"",assignee:"",status:""};}
     catch{return{workstream:"",assignee:"",status:""};}
   });
-  useEffect(()=>{localStorage.setItem("task_defaults",JSON.stringify(taskDefaults));},[taskDefaults]);
+  useEffect(()=>{try{localStorage.setItem("task_defaults",JSON.stringify(taskDefaults));}catch(e){console.warn("localStorage write failed:",e);}},[taskDefaults]);
   // Undo/redo
   const[undoStack,setUndoStack]=useState([]);
   const[redoStack,setRedoStack]=useState([]);
   const taskRefs=useRef({});
 
   // Persist URL
-  useEffect(()=>{ if(gsUrl) localStorage.setItem("gs_url",gsUrl); },[gsUrl]);
+  useEffect(()=>{try{ if(gsUrl) localStorage.setItem("gs_url",gsUrl); }catch(e){console.warn("localStorage write failed:",e);}},[gsUrl]);
 
   // Persist agenda (reset on Fridays)
-  useEffect(()=>{if(new Date().getDay()===5){setAgendaText("");localStorage.removeItem("ls_agenda");return;}if(agendaText)localStorage.setItem("ls_agenda",JSON.stringify({text:agendaText,updatedAt:new Date().toISOString()}));},[agendaText]);
-  useEffect(()=>{if(agendaStructure)localStorage.setItem("ls_agenda_structure",JSON.stringify({text:agendaStructure}));},[agendaStructure]);
-  useEffect(()=>{localStorage.setItem("ls_meeting_schedule",JSON.stringify(meetingSchedule));},[meetingSchedule]);
-  useEffect(()=>{localStorage.setItem("ls_agenda_history",JSON.stringify(agendaHistory));},[agendaHistory]);
-  useEffect(()=>{localStorage.setItem("ls_ws_health",JSON.stringify(workstreamHealth));scheduleConfigSave("WorkstreamHealth",workstreamHealth);},[workstreamHealth]);
+  useEffect(()=>{try{if(new Date().getDay()===5){setAgendaText("");localStorage.removeItem("ls_agenda");return;}if(agendaText)localStorage.setItem("ls_agenda",JSON.stringify({text:agendaText,updatedAt:new Date().toISOString()}));}catch(e){}},[agendaText]);
+  useEffect(()=>{try{if(agendaStructure)localStorage.setItem("ls_agenda_structure",JSON.stringify({text:agendaStructure}));}catch(e){}},[agendaStructure]);
+  useEffect(()=>{try{localStorage.setItem("ls_meeting_schedule",JSON.stringify(meetingSchedule));}catch(e){console.warn("localStorage write failed:",e);}},[meetingSchedule]);
+  useEffect(()=>{try{localStorage.setItem("ls_agenda_history",JSON.stringify(agendaHistory));}catch(e){console.warn("localStorage write failed:",e);}},[agendaHistory]);
+  useEffect(()=>{try{localStorage.setItem("ls_ws_health",JSON.stringify(workstreamHealth));}catch(e){console.warn("localStorage write failed:",e);}scheduleConfigSave("WorkstreamHealth",workstreamHealth);},[workstreamHealth]);
 
   // Persist custom colours to localStorage
   useEffect(()=>{
     const cols={};
     workstreams.forEach(w=>{if(w._customColor) cols["ws_"+w.id]=w._customColor;});
     members.forEach(m=>{if(m._customColor) cols["mb_"+m.id]=m._customColor;});
-    localStorage.setItem("ls_custom_colors",JSON.stringify(cols));
+    try{localStorage.setItem("ls_custom_colors",JSON.stringify(cols));}catch(e){}
   },[workstreams,members]);
 
   // Restore custom colours on first mount
@@ -4659,7 +5149,13 @@ function App(){
     else{setTasks(ts=>[...ts,Object.assign({},stamped,{id:uid("tsk")})]);addLog("task_add","Added: "+stamped.name);}
     setShowModal(false);
   }
-  function deleteTask(id){if(!confirm("Delete this task? This cannot be undone."))return;const t=tasks.find(x=>x.id===id);setTasks(ts=>ts.filter(x=>x.id!==id));if(t)addLog("task_update","Deleted: "+t.name);}
+  async function deleteTask(id){
+    const t=tasks.find(x=>x.id===id);
+    const ok=await confirmAsync({title:"Delete task?",message:"Delete \""+(t?t.name:"this task")+"\"? This cannot be undone.",confirmLabel:"Delete",danger:true});
+    if(!ok)return;
+    setTasks(ts=>ts.filter(x=>x.id!==id));
+    if(t){addLog("task_update","Deleted: "+t.name);toast("Task deleted","success");}
+  }
   function jumpToTask(id){setView("list");setWorkSubTab("list");setFilterMember("All");setFilterWS("All");setFilterStatus("All");setHighlightTask(id);setTimeout(()=>{taskRefs.current[id]&&taskRefs.current[id].scrollIntoView({behavior:"smooth",block:"center"});},200);setTimeout(()=>setHighlightTask(null),2500);}
   function addCLItem(){setEditTask(t=>Object.assign({},t,{checklist:[...t.checklist,{id:uid("cl"),text:"",done:false}]}));}
   function updCLItem(id,field,val){setEditTask(t=>Object.assign({},t,{checklist:t.checklist.map(c=>c.id===id?Object.assign({},c,{[field]:val}):c)}));}
@@ -4667,8 +5163,15 @@ function App(){
   function toggleCLDone(tid,cid){setTasks(ts=>ts.map(t=>t.id===tid?Object.assign({},t,{lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||"",checklist:t.checklist.map(c=>c.id===cid?Object.assign({},c,{done:!c.done}):c)}):t));}
   function toggleTaskDone(id){const rrSt="Complete - RR";const nSt=statuses.find(s=>s.name==="Not Started")||statuses[0];const t=tasks.find(x=>x.id===id);if(t){const alreadyDone=t.status==="Complete"||t.status==="Complete - RR"||t.status==="Archive - Complete";const ns=alreadyDone?nSt.name:rrSt;setTasks(ts=>ts.map(x=>x.id===id?Object.assign({},x,{status:ns,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""}):x));addLog(!alreadyDone?"task_complete":"task_update",(!alreadyDone?"Marked for review: ":"Reopened: ")+t.name);}}
   function toggleAttendee(n){setMeetingAttendees(a=>a.includes(n)?a.filter(x=>x!==n):[...a,n]);}
-  function startMeeting(){setMeetingMode(true);addLog("meeting_start","Meeting started: "+meetingAttendees.join(", "));}
-  function endMeeting(){addLog("meeting_end","Meeting ended: "+meetingAttendees.join(", "));setMeetingMode(false);setMeetingAttendees([]);}
+  function startMeeting(){const startedAt=new Date();setMeetingStartTime(startedAt.toISOString());setMeetingMode(true);addLog("meeting_start","Meeting started at "+fmtTime(startedAt)+" — "+(meetingAttendees.join(", ")||"no attendees listed"));}
+  function endMeeting(){
+    const endedAt=new Date();
+    const start=meetingStartTime?new Date(meetingStartTime):null;
+    const durMin=start?Math.round((endedAt-start)/60000):null;
+    const dur=durMin!=null?(durMin>=60?Math.floor(durMin/60)+"h "+(durMin%60)+"m":durMin+"m"):"unknown";
+    addLog("meeting_end","Meeting ended at "+fmtTime(endedAt)+" — duration "+dur+" — attendees: "+(meetingAttendees.join(", ")||"none"));
+    setMeetingMode(false);setMeetingStartTime(null);setMeetingAttendees([]);
+  }
 
   const NAV=[{id:"dashboard",label:"Dashboard"},{id:"work",label:"Work"},{id:"meeting-pack",label:"Meeting Pack"},{id:"decisions",label:"Decisions"},{id:"contacts",label:"Contacts"},{id:"settings",label:"Settings"}];const WORK_SUBTABS=[{id:"list",label:"Task List"},{id:"kanban",label:"Kanban"},{id:"timeline",label:"Timeline"},{id:"people",label:"People"}];
 
@@ -4737,8 +5240,8 @@ function App(){
       </div>}
 
       <div className="ls-content">
-        {view==="dashboard"&&<Dashboard tasks={tasks} workstreams={workstreams} members={members} statuses={statuses} jumpToTask={jumpToTask} openEdit={openEdit} getMember={getMember} getWS={getWS} getStatus={getStatus} activityLog={activityLog}/>}
-        {view==="meeting-pack"&&<MeetingPack tasks={tasks} setTasks={setTasks} workstreams={workstreams} getMember={getMember} getStatus={getStatus} jumpToTask={jumpToTask} members={members} agendaText={agendaText} setAgendaText={setAgendaText} agendaStructure={agendaStructure} gsClientRef={gsClientRef} gsConnected={gsConnected} emojiLog={emojiLog} setEmojiLog={setEmojiLog} meetingMode={meetingMode} meetingAttendees={meetingAttendees} toggleAttendee={toggleAttendee} startMeeting={startMeeting} endMeeting={endMeeting} meetingSchedule={meetingSchedule} setMeetingSchedule={setMeetingSchedule} agendaHistory={agendaHistory} setAgendaHistory={setAgendaHistory} workstreamHealth={workstreamHealth} setWorkstreamHealth={setWorkstreamHealth} decisions={decisions} setDecisions={setDecisions} addLog={addLog}/>}
+        {view==="dashboard"&&<Dashboard tasks={tasks} workstreams={workstreams} members={members} statuses={statuses} jumpToTask={jumpToTask} openEdit={openEdit} getMember={getMember} getWS={getWS} getStatus={getStatus} activityLog={activityLog} meetingSchedule={meetingSchedule}/>}
+        {view==="meeting-pack"&&<MeetingPack tasks={tasks} setTasks={setTasks} workstreams={workstreams} getMember={getMember} getStatus={getStatus} jumpToTask={jumpToTask} members={members} agendaText={agendaText} setAgendaText={setAgendaText} agendaStructure={agendaStructure} gsClientRef={gsClientRef} gsConnected={gsConnected} emojiLog={emojiLog} setEmojiLog={setEmojiLog} meetingMode={meetingMode} meetingAttendees={meetingAttendees} toggleAttendee={toggleAttendee} startMeeting={startMeeting} endMeeting={endMeeting} meetingSchedule={meetingSchedule} setMeetingSchedule={setMeetingSchedule} agendaHistory={agendaHistory} setAgendaHistory={setAgendaHistory} workstreamHealth={workstreamHealth} setWorkstreamHealth={setWorkstreamHealth} decisions={decisions} setDecisions={setDecisions} addLog={addLog} meetingStartTime={meetingStartTime} meetingTick={meetingTick}/>}
 
         {(view==="work"||view==="list"||view==="kanban"||view==="timeline"||view==="people")&&<div>
           <div className="flex items-center gap-1 mb-5 border-b border-gray-800 pb-0">
@@ -4746,7 +5249,7 @@ function App(){
           </div>
           {workSubTab==="timeline"&&<div><div className="flex items-center justify-between mb-4 flex-wrap gap-2"><h2 className="text-2xl font-bold">Timeline</h2><div className="flex gap-2 flex-wrap items-center"><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-xs font-medium">+ New Task</button>{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div></div><Timeline tasks={tasks} setTasks={setTasks} workstreams={workstreams} members={members} filterMember={filterMember}/></div>}
         {workSubTab==="kanban"&&<div><div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold">Kanban</h2><div className="flex items-center gap-2"><select value={listSort.col==="priority"&&listSort.dir==="asc"?"priority_asc":listSort.col==="deadline"?"deadline_asc":listSort.col==="name"?"name_asc":"priority_asc"} onChange={e=>{const v=e.target.value;const[col,dir]=v.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option></select><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium">+ New Task</button></div></div><div className="flex gap-2 mb-4 flex-wrap">{["All",...members.filter(m=>m.name!=="Unassigned").map(m=>m.name)].map(m=><button key={m} onClick={()=>setFilterMember(m)} className={"px-3 py-1 rounded text-sm "+(filterMember===m?"bg-indigo-600 text-white":"bg-gray-800 text-gray-400 hover:text-white")}>{m}</button>)}</div><div style={{overflowX:"auto",overflowY:"visible",paddingBottom:"1rem"}}><div style={{display:"flex",gap:"12px",minWidth:"max-content",paddingBottom:"2px"}}>{statuses.map(st=>{const col=(()=>{  const base=tasks.filter(t=>t.status===st.name&&(filterMember==="All"||t.assignee===filterMember));  const{col:sc,dir}=listSort;const d=dir==="asc"?1:-1;  return [...base].sort((a,b)=>{    if(sc==="priority") return d*((PRIORITY_STYLE[a.priority||"N/A"].order)-(PRIORITY_STYLE[b.priority||"N/A"].order));    if(sc==="name") return d*(a.name||"").localeCompare(b.name||"");    if(sc==="deadline"){const da=a.deadline||"9999",db=b.deadline||"9999";return d*(da.localeCompare(db));}    return 0;  });})();return <div key={st.id} className={"flex-shrink-0 w-60 border-t-2 "+st.board+" bg-gray-900 rounded-xl p-3"} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(dragTask){const isAC=st.name==="Archive - Complete";const isComp=st.name==="Complete";setTasks(ts=>ts.map(t=>t.id===dragTask?Object.assign({},t,{status:st.name,lastModified:new Date().toISOString()},isAC&&!t.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{},isComp&&!t.completionDate?{completionDate:fmtDate(TODAY)}:{}):t));addLog("status_change","Moved to "+st.name);}setDragTask(null);}}><div className="flex items-center justify-between mb-3"><span className={"text-xs font-semibold px-2 py-0.5 rounded "+st.badge}>{st.name}</span><span className="text-xs bg-gray-800 rounded-full px-2 py-0.5 text-gray-400">{col.length}</span></div><div className="space-y-2">{col.map(t=>{const ws=getWS(t.workstream),prog=taskProgress(t),mb=getMember(t.assignee),pri=PRIORITY_STYLE[t.priority||"N/A"];return <div key={t.id} draggable onDragStart={()=>setDragTask(t.id)} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 cursor-grab hover:bg-gray-700" onClick={()=>openEdit(t)}><div className={"h-1 w-full "+ws.dot} style={wsStyle(ws)}/><div className="p-3"><div className="flex items-start gap-2 mb-1">{t.priority&&t.priority!=="N/A"&&<span className={"text-xs px-1.5 py-0.5 rounded flex-shrink-0 "+pri.badge}>{t.priority}</span>}<div className="text-sm font-medium text-gray-200">{t.name}</div></div>{prog!==null&&<div className="mb-2"><div className="flex justify-between text-xs text-gray-400 mb-0.5"><span>Checklist</span><span>{prog}%</span></div><div className="h-1.5 bg-gray-700 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div></div>}<div className="flex items-center justify-between"><span className={"px-1.5 py-0.5 rounded text-xs "+ws.color+" "+ws.text}>{t.workstream.length>12?t.workstream.slice(0,12)+"...":t.workstream}</span><Avatar member={mb}/></div>{st.name==="Archive - Complete"&&t.archiveCompleteDate&&(()=>{const acd=parseDate(t.archiveCompleteDate);const expiresIn=acd?7-Math.round((new Date()-acd)/86400000):null;return <div className={"text-xs mt-1 "+(expiresIn!==null&&expiresIn<=2?"text-red-400":"text-gray-600")}>⏳ {expiresIn!==null?(expiresIn<=0?"Expires today":expiresIn===1?"Expires tomorrow":"Expires in "+expiresIn+"d"):"Expires soon"}</div>})()}{t.deadline&&st.name!=="Archive - Complete"&&<div className="text-xs text-gray-500 mt-1">Due {t.deadline}</div>}</div></div>;})}</div></div>;})} </div></div></div>}
-        {workSubTab==="list"&&<div><div className="flex items-center gap-2 mb-4 flex-wrap"><h2 className="text-2xl font-bold mr-2">Task List</h2><select value={filterMember} onChange={e=>setFilterMember(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All members</option>{members.map(m=><option key={m.id}>{m.name}</option>)}</select><select value={filterWS} onChange={e=>setFilterWS(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All workstreams</option>{workstreams.map(w=><option key={w.id}>{w.name}</option>)}</select><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All statuses</option>{statuses.map(s=><option key={s.id}>{s.name}</option>)}</select><select value={listSort.col+"_"+listSort.dir} onChange={e=>{const[col,dir]=e.target.value.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="priority_desc">Priority ↓</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option><option value="workstream_asc">Workstream A–Z</option><option value="assignee_asc">Assignee A–Z</option><option value="status_asc">Status A–Z</option></select><div className="flex-1"/><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">+ New Task</button></div><div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">            <table className="w-full text-sm"><thead><tr className="border-b border-gray-800 text-gray-400 text-xs uppercase"><th className="w-1 p-0"/>{[["name","Task",""],["priority","Priority","hidden lg:table-cell"],["workstream","Workstream","hidden md:table-cell"],["","Epic","hidden lg:table-cell"],["assignee","Assignee",""],["status","Status",""],["","Progress","hidden md:table-cell"],["deadline","Deadline","hidden md:table-cell"]].map(([col,label,cls])=><th key={label} className={"text-left p-3 select-none "+(cls||"")+(col?" cursor-pointer hover:text-white":"")} onClick={col?()=>setListSort(s=>({col,dir:s.col===col&&s.dir==="asc"?"desc":"asc"})):undefined}>{label}{col&&listSort.col===col?<span className="ml-1 text-indigo-400">{listSort.dir==="asc"?"▲":"▼"}</span>:col?<span className="ml-1 text-gray-700">⇅</span>:null}</th>)}<th className="p-3"/></tr></thead>            <tbody>{filtered.map(t=>{const prog=taskProgress(t),ws=getWS(t.workstream),mb=getMember(t.assignee),isRR=t.status==="Complete - RR",isFullyDone=t.status==="Complete",isArchived=t.status==="Archive - Complete",isDone=isRR||isFullyDone||isArchived,pri=PRIORITY_STYLE[t.priority||"N/A"];return <tr key={t.id} ref={el=>taskRefs.current[t.id]=el} className={"border-b border-gray-800 hover:bg-gray-800/50 "+(highlightTask===t.id?"bg-indigo-900/40 ":"")+(isFullyDone||isArchived?"opacity-60":"")+(isRR?" bg-green-950/20":"")+(isArchived?" opacity-50":"")}><td className={"w-1 p-0 border-l-4 "+ws.border}/><td className="p-3"><div className="flex items-center gap-2"><button onClick={()=>toggleTaskDone(t.id)} title={isRR?"Awaiting review — click to reopen":isFullyDone?"Complete — click to reopen":"Mark as complete (requires review)"} className={"w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center "+(isFullyDone||isArchived?"bg-green-500 border-green-500":isRR?"bg-amber-500 border-amber-500":"border-gray-600 hover:border-amber-400")}>{isDone&&<span className="text-white text-xs font-bold">✓</span>}</button><span className={"font-medium "+(isDone?"line-through text-gray-500":"text-gray-200")}>{t.name}</span></div>{t.notes&&<div className="text-xs text-gray-500 mt-0.5 truncate max-w-xs pl-7">{t.notes}</div>}{t.checklist&&t.checklist.length>0&&<div className="mt-1 space-y-0.5 pl-7">{t.checklist.map(c=><div key={c.id} className="flex items-center gap-1.5 cursor-pointer" onClick={()=>toggleCLDone(t.id,c.id)}><div className={"w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center "+(c.done?"bg-indigo-500 border-indigo-500":"border-gray-600")}>{c.done&&<span className="text-white text-xs">✓</span>}</div><span className={"text-xs "+(c.done?"line-through text-gray-500":"text-gray-400")}>{c.text}</span></div>)}</div>}</td><td className="p-3 hidden lg:table-cell"><span className={"px-2 py-0.5 rounded text-xs "+pri.badge}>{t.priority||"N/A"}</span></td><td className="p-3 hidden md:table-cell"><span className={"px-2 py-0.5 rounded text-xs font-semibold "+ws.color+" "+ws.text}>{t.workstream}</span></td><td className="p-3 hidden lg:table-cell text-gray-400 text-xs">{t.epic}</td><td className="p-3"><div className="flex items-center gap-1.5"><Avatar member={mb}/><span className="hidden sm:block text-gray-300">{t.assignee}</span></div></td><td className="p-3"><StatusDropdown value={t.status} onChange={v=>{const isAC=v==="Archive - Complete";const isComp=v==="Complete";setTasks(ts=>ts.map(x=>x.id===t.id?Object.assign({},x,{status:v,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!x.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{},isComp&&!x.completionDate?{completionDate:fmtDate(TODAY)}:{}):x));addLog("status_change","Status: "+t.name+" to "+v);}} statuses={statuses}/></td><td className="p-3 hidden md:table-cell">{prog!==null?<div className="flex items-center gap-2"><div className="h-1.5 w-16 bg-gray-800 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div><span className="text-xs text-gray-400">{prog}%</span></div>:<span className="text-xs text-gray-600">—</span>}</td><td className="p-3 hidden md:table-cell text-gray-400">{t.deadline||"—"}</td><td className="p-3"><div className="flex gap-1"><button onClick={()=>openEdit(t)} className="text-gray-500 hover:text-white p-1">✏️</button><button onClick={()=>deleteTask(t.id)} className="text-gray-500 hover:text-red-400 p-1">🗑</button></div></td></tr>;})} </tbody></table>            {filtered.length===0&&<div className="p-8 text-center text-gray-500">No tasks match filters</div>}          </div>        </div>}
+        {workSubTab==="list"&&<div><div className="flex items-center gap-2 mb-4 flex-wrap"><h2 className="text-2xl font-bold mr-2">Task List</h2><select value={filterMember} onChange={e=>setFilterMember(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All members</option>{members.map(m=><option key={m.id}>{m.name}</option>)}</select><select value={filterWS} onChange={e=>setFilterWS(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All workstreams</option>{workstreams.map(w=><option key={w.id}>{w.name}</option>)}</select><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="All">All statuses</option>{statuses.map(s=><option key={s.id}>{s.name}</option>)}</select><select value={listSort.col+"_"+listSort.dir} onChange={e=>{const[col,dir]=e.target.value.split("_");setListSort({col,dir});}} className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200"><option value="priority_asc">Priority ↑</option><option value="priority_desc">Priority ↓</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="deadline_asc">Deadline ↑</option><option value="deadline_desc">Deadline ↓</option><option value="workstream_asc">Workstream A–Z</option><option value="assignee_asc">Assignee A–Z</option><option value="status_asc">Status A–Z</option></select><div className="flex-1"/><button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">+ New Task</button></div><div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">            <table className="w-full text-sm"><thead><tr className="border-b border-gray-800 text-gray-400 text-xs uppercase"><th className="w-1 p-0"/>{[["name","Task",""],["priority","Priority","hidden lg:table-cell"],["workstream","Workstream","hidden md:table-cell"],["","Epic","hidden lg:table-cell"],["assignee","Assignee",""],["status","Status",""],["","Progress","hidden md:table-cell"],["deadline","Deadline","hidden md:table-cell"]].map(([col,label,cls])=><th key={label} className={"text-left p-3 select-none "+(cls||"")+(col?" cursor-pointer hover:text-white":"")} onClick={col?()=>setListSort(s=>({col,dir:s.col===col&&s.dir==="asc"?"desc":"asc"})):undefined}>{label}{col&&listSort.col===col?<span className="ml-1 text-indigo-400">{listSort.dir==="asc"?"▲":"▼"}</span>:col?<span className="ml-1 text-gray-700">⇅</span>:null}</th>)}<th className="p-3"/></tr></thead>            <tbody>{filtered.map(t=>{const prog=taskProgress(t),ws=getWS(t.workstream),mb=getMember(t.assignee),isRR=t.status==="Complete - RR",isFullyDone=t.status==="Complete",isArchived=t.status==="Archive - Complete",isDone=isRR||isFullyDone||isArchived,pri=PRIORITY_STYLE[t.priority||"N/A"];return <tr key={t.id} ref={el=>taskRefs.current[t.id]=el} className={"border-b border-gray-800 hover:bg-gray-800/50 "+(highlightTask===t.id?"bg-indigo-900/40 ":"")+(isFullyDone||isArchived?"opacity-60":"")+(isRR?" bg-green-950/20":"")+(isArchived?" opacity-50":"")}><td className={"w-1 p-0 border-l-4 "+ws.border}/><td className="p-3"><div className="flex items-center gap-2"><button onClick={()=>toggleTaskDone(t.id)} title={isRR?"Awaiting review — click to reopen":isFullyDone?"Complete — click to reopen":"Mark as complete (requires review)"} className={"w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center "+(isFullyDone||isArchived?"bg-green-500 border-green-500":isRR?"bg-amber-500 border-amber-500":"border-gray-600 hover:border-amber-400")}>{isDone&&<span className="text-white text-xs font-bold">✓</span>}</button><span className={"font-medium "+(isDone?"line-through text-gray-500":"text-gray-200")}>{t.name}</span></div>{t.notes&&<div className="text-xs text-gray-500 mt-0.5 truncate max-w-xs pl-7">{t.notes}</div>}{t.checklist&&t.checklist.length>0&&<div className="mt-1 space-y-0.5 pl-7">{t.checklist.map(c=><div key={c.id} className="flex items-center gap-1.5 cursor-pointer" onClick={()=>toggleCLDone(t.id,c.id)}><div className={"w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center "+(c.done?"bg-indigo-500 border-indigo-500":"border-gray-600")}>{c.done&&<span className="text-white text-xs">✓</span>}</div><span className={"text-xs "+(c.done?"line-through text-gray-500":"text-gray-400")}>{c.text}</span></div>)}</div>}</td><td className="p-3 hidden lg:table-cell"><span className={"px-2 py-0.5 rounded text-xs "+pri.badge}>{t.priority||"N/A"}</span></td><td className="p-3 hidden md:table-cell"><span className={"px-2 py-0.5 rounded text-xs font-semibold "+ws.color+" "+ws.text}>{t.workstream}</span></td><td className="p-3 hidden lg:table-cell text-gray-400 text-xs">{t.epic}</td><td className="p-3"><div className="flex items-center gap-1.5"><Avatar member={mb}/><span className="hidden sm:block text-gray-300">{t.assignee}</span></div></td><td className="p-3"><StatusDropdown value={t.status} onChange={v=>{const isAC=v==="Archive - Complete";const isComp=v==="Complete";setTasks(ts=>ts.map(x=>x.id===t.id?Object.assign({},x,{status:v,lastReviewed:fmtDate(TODAY),lastModified:new Date().toISOString(),modifiedBy:taskDefaults.assignee||""},isAC&&!x.archiveCompleteDate?{archiveCompleteDate:fmtDate(TODAY)}:{},isComp&&!x.completionDate?{completionDate:fmtDate(TODAY)}:{}):x));addLog("status_change","Status: "+t.name+" to "+v);}} statuses={statuses}/></td><td className="p-3 hidden md:table-cell">{prog!==null?<div className="flex items-center gap-2"><div className="h-1.5 w-16 bg-gray-800 rounded-full overflow-hidden"><div className={"h-full rounded-full "+ws.dot} style={{width:prog+"%"}}/></div><span className="text-xs text-gray-400">{prog}%</span></div>:<span className="text-xs text-gray-600">—</span>}</td><td className="p-3 hidden md:table-cell text-gray-400">{t.deadline||"—"}</td><td className="p-3"><div className="flex gap-1"><button onClick={()=>openEdit(t)} className="text-gray-500 hover:text-white p-1" aria-label="Edit task" title="Edit task">✏️</button><button onClick={()=>deleteTask(t.id)} className="text-gray-500 hover:text-red-400 p-1" aria-label="Delete task" title="Delete task">🗑</button></div></td></tr>;})} </tbody></table>            {filtered.length===0&&<div className="p-8 text-center text-gray-500">No tasks match filters</div>}          </div>        </div>}
         {workSubTab==="people"&&<div className="max-w-4xl mx-auto"><h2 className="text-2xl font-bold mb-6">People</h2><div className="grid grid-cols-1 gap-6 md:grid-cols-2">{members.filter(m=>m.name!=="Unassigned").map(m=>{const mt=tasks.filter(t=>t.assignee===m.name&&t.status!=="Archive - Complete"),md=mt.filter(t=>t.status==="Complete"||t.status==="Complete - RR"||t.status==="Archived"||t.status==="Archive - Complete").length,ongoing=mt.filter(t=>t.status==="Ongoing"),active=mt.filter(t=>isActive(t)&&t.status!=="Ongoing");return <div key={m.id} className="bg-gray-900 rounded-xl border border-gray-800 p-5"><div className="flex items-center gap-3 mb-4"><AvatarLg member={m}/><div><div className="font-bold text-lg">{m.name}</div><div className="text-gray-400 text-sm">{mt.length} tasks, {md} complete</div></div></div><div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-4"><div className={"h-full rounded-full "+m.bg} style={{width:(mt.length?Math.round(md/mt.length*100):0)+"%"}}/></div>{ongoing.length>0&&<div className="mb-3"><div className="text-xs text-gray-500 uppercase mb-1">Ongoing</div>{ongoing.map(t=><div key={t.id} className="text-sm text-blue-300 py-0.5 cursor-pointer hover:underline" onClick={()=>jumpToTask(t.id)}>• {t.name}</div>)}</div>}{active.length>0&&<div><div className="text-xs text-gray-500 uppercase mb-1">Active</div>{active.slice(0,5).map(t=><div key={t.id} className="text-sm text-gray-300 py-0.5 cursor-pointer hover:underline" onClick={()=>jumpToTask(t.id)}>• {t.name}</div>)}{active.length>5&&<div className="text-xs text-gray-500 mt-1">+{active.length-5} more</div>}</div>}</div>;})} </div></div>}
         </div>}
         {view==="decisions"&&<DecisionTracker decisions={decisions} setDecisions={setDecisions} members={members} workstreams={workstreams} epics={epics} meetingMode={meetingMode} meetingAttendees={meetingAttendees} addLog={addLog}/>}
@@ -4754,7 +5257,7 @@ function App(){
         {view==="settings"&&<SettingsPanel workstreams={workstreams} setWorkstreams={setWorkstreams} statuses={statuses} setStatuses={setStatuses} members={members} setMembers={setMembers} epics={epics} setEpics={setEpics} activityLog={activityLog} gsUrl={gsUrl} setGsUrl={setGsUrl} gsConnected={gsConnected} gsError={gsError} onConnect={connectSheets} onPush={()=>setShowPushConfirm(true)} onPull={async()=>{setGsSaving(true);try{await pullFromSheets();}finally{setGsSaving(false);}}} taskDefaults={taskDefaults} setTaskDefaults={setTaskDefaults} initialTab={settingsTab} onTabChange={setSettingsTab} healthProps={{gsUrl,gsConnected,gsClientRef,lastSyncRef,syncConflict,gsSaving,tasks,contacts,decisions,activityLog}} theme={theme} setTheme={setTheme} agendaStructure={agendaStructure} setAgendaStructure={setAgendaStructure}/>}
       </div>
 
-{showModal&&editTask&&<div className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-y-auto" style={{background:"rgba(0,0,0,0.75)"}}><div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full my-4" style={{maxWidth:520}}><h3 className="font-bold text-lg mb-4">{editTask.id?"Edit Task":"New Task"}</h3><div className="space-y-3"><div><label className="text-xs text-gray-400 block mb-1">Task Name</label><input value={editTask.name} onChange={e=>setEditTask(t=>Object.assign({},t,{name:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"/></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Workstream</label><Combobox value={editTask.workstream||""} onChange={v=>setEditTask(t=>Object.assign({},t,{workstream:v}))} options={["N/A",...workstreams.map(w=>w.name)]} placeholder="N/A — or type to filter" onCreateNew={v=>{setWorkstreams(ws=>[...ws,{id:uid("ws"),name:v,color:"bg-gray-700",text:"text-gray-100",dot:"bg-gray-500",border:"border-gray-500"}]);setEditTask(t=>Object.assign({},t,{workstream:v}));}}/></div><div><label className="text-xs text-gray-400 block mb-1">Epic</label><Combobox value={editTask.epic||""} onChange={v=>setEditTask(t=>Object.assign({},t,{epic:v}))} options={["N/A",...epics]} placeholder="N/A — or type to filter" onCreateNew={v=>{setEpics(ep=>[...ep,v]);setEditTask(t=>Object.assign({},t,{epic:v}));}}/></div></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Assignee</label><select value={editTask.assignee} onChange={e=>setEditTask(t=>Object.assign({},t,{assignee:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{members.map(m=><option key={m.id}>{m.name}</option>)}</select></div><div><label className="text-xs text-gray-400 block mb-1">Status</label><select value={editTask.status} onChange={e=>setEditTask(t=>Object.assign({},t,{status:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{statuses.filter(s=>s.name!=="Archive - Complete").map(s=><option key={s.id}>{s.name}</option>)}</select></div></div><div><label className="text-xs text-gray-400 block mb-2">Priority</label><div className="flex gap-2 flex-wrap">{PRIORITIES.map(p=>{const ps=PRIORITY_STYLE[p];const sel=(editTask.priority||"N/A")===p;return <button key={p} type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{priority:p}))} className={"px-3 py-1 rounded text-xs "+ps.badge+(sel?" ring-2 ring-white scale-105":" opacity-50 hover:opacity-80")}>{p}</button>;})}</div></div><div className="grid grid-cols-2 gap-3"><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Start</label><button type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{start:fmtDate(TODAY)}))} className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-900/30 hover:bg-indigo-900/50 px-2 py-0.5 rounded border border-indigo-800">Today</button></div><input type="date" value={editTask.start} onChange={e=>setEditTask(t=>Object.assign({},t,{start:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Deadline</label><span className="text-xs text-transparent select-none">Today</span></div><input type="date" value={editTask.deadline} onChange={e=>setEditTask(t=>Object.assign({},t,{deadline:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div></div><div><label className="text-xs text-gray-400 block mb-1">Notes</label><textarea value={editTask.notes} onChange={e=>setEditTask(t=>Object.assign({},t,{notes:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none h-16 resize-y min-h-[4rem]"/></div><div><div className="flex items-center justify-between mb-2"><label className="text-xs text-gray-400 uppercase tracking-wide">Checklist</label>{editTask.checklist.length>0&&<span className="text-xs text-gray-500">{editTask.checklist.filter(c=>c.done).length}/{editTask.checklist.length} — {Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100)}%</span>}</div>{editTask.checklist.length>0&&<div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mb-2"><div className="h-full bg-indigo-500 rounded-full" style={{width:(editTask.checklist.length?Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100):0)+"%"}}/></div>}<div className="space-y-1.5 mb-2">{editTask.checklist.map(c=><div key={c.id} className="flex items-center gap-2"><input type="checkbox" checked={c.done} onChange={e=>updCLItem(c.id,"done",e.target.checked)} className="rounded w-4 h-4 flex-shrink-0 accent-indigo-500"/><input value={c.text} onChange={e=>updCLItem(c.id,"text",e.target.value)} placeholder="Checklist item..." className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none"/><button onClick={()=>remCLItem(c.id)} className="text-gray-600 hover:text-red-400 text-xs px-1">X</button></div>)}</div><button onClick={addCLItem} className="text-xs text-indigo-400 hover:text-indigo-300">+ Add item</button></div></div><div className="flex justify-end gap-2 mt-5"><button onClick={()=>setShowModal(false)} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm">Cancel</button><button onClick={saveTask} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium">Save</button></div></div></div>}
+{showModal&&editTask&&<div className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-y-auto" style={{background:"rgba(0,0,0,0.75)"}}><div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full my-4" style={{maxWidth:520}}><h3 className="font-bold text-lg mb-4">{editTask.id?"Edit Task":"New Task"}</h3><div className="space-y-3"><div><label className="text-xs text-gray-400 block mb-1">Task Name</label><input value={editTask.name} onChange={e=>setEditTask(t=>Object.assign({},t,{name:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" autoFocus aria-label="Task name"/></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Workstream</label><Combobox value={editTask.workstream||""} onChange={v=>setEditTask(t=>Object.assign({},t,{workstream:v}))} options={["N/A",...workstreams.map(w=>w.name)]} placeholder="N/A — or type to filter" onCreateNew={v=>{setWorkstreams(ws=>[...ws,{id:uid("ws"),name:v,color:"bg-gray-700",text:"text-gray-100",dot:"bg-gray-500",border:"border-gray-500"}]);setEditTask(t=>Object.assign({},t,{workstream:v}));}}/></div><div><label className="text-xs text-gray-400 block mb-1">Epic</label><Combobox value={editTask.epic||""} onChange={v=>setEditTask(t=>Object.assign({},t,{epic:v}))} options={["N/A",...epics]} placeholder="N/A — or type to filter" onCreateNew={v=>{setEpics(ep=>[...ep,v]);setEditTask(t=>Object.assign({},t,{epic:v}));}}/></div></div><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">Assignee</label><select value={editTask.assignee} onChange={e=>setEditTask(t=>Object.assign({},t,{assignee:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{members.map(m=><option key={m.id}>{m.name}</option>)}</select></div><div><label className="text-xs text-gray-400 block mb-1">Status</label><select value={editTask.status} onChange={e=>setEditTask(t=>Object.assign({},t,{status:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none">{statuses.filter(s=>s.name!=="Archive - Complete").map(s=><option key={s.id}>{s.name}</option>)}</select></div></div><div><label className="text-xs text-gray-400 block mb-2">Priority</label><div className="flex gap-2 flex-wrap">{PRIORITIES.map(p=>{const ps=PRIORITY_STYLE[p];const sel=(editTask.priority||"N/A")===p;return <button key={p} type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{priority:p}))} className={"px-3 py-1 rounded text-xs "+ps.badge+(sel?" ring-2 ring-white scale-105":" opacity-50 hover:opacity-80")}>{p}</button>;})}</div></div><div className="grid grid-cols-2 gap-3"><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Start</label><button type="button" onClick={()=>setEditTask(t=>Object.assign({},t,{start:fmtDate(TODAY)}))} className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-900/30 hover:bg-indigo-900/50 px-2 py-0.5 rounded border border-indigo-800">Today</button></div><input type="date" value={editTask.start} onChange={e=>setEditTask(t=>Object.assign({},t,{start:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div><div><div className="flex items-center justify-between mb-1"><label className="text-xs text-gray-400">Deadline</label><span className="text-xs text-transparent select-none">Today</span></div><input type="date" value={editTask.deadline} onChange={e=>setEditTask(t=>Object.assign({},t,{deadline:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none"/></div></div><div><label className="text-xs text-gray-400 block mb-1">Notes</label><textarea value={editTask.notes} onChange={e=>setEditTask(t=>Object.assign({},t,{notes:e.target.value}))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none h-16 resize-y min-h-[4rem]"/></div><div><div className="flex items-center justify-between mb-2"><label className="text-xs text-gray-400 uppercase tracking-wide">Checklist</label>{editTask.checklist.length>0&&<span className="text-xs text-gray-500">{editTask.checklist.filter(c=>c.done).length}/{editTask.checklist.length} — {Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100)}%</span>}</div>{editTask.checklist.length>0&&<div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mb-2"><div className="h-full bg-indigo-500 rounded-full" style={{width:(editTask.checklist.length?Math.round(editTask.checklist.filter(c=>c.done).length/editTask.checklist.length*100):0)+"%"}}/></div>}<div className="space-y-1.5 mb-2">{editTask.checklist.map(c=><div key={c.id} className="flex items-center gap-2"><input type="checkbox" checked={c.done} onChange={e=>updCLItem(c.id,"done",e.target.checked)} className="rounded w-4 h-4 flex-shrink-0 accent-indigo-500"/><input value={c.text} onChange={e=>updCLItem(c.id,"text",e.target.value)} placeholder="Checklist item..." className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none"/><button onClick={()=>remCLItem(c.id)} className="text-gray-600 hover:text-red-400 text-xs px-1">X</button></div>)}</div><button onClick={addCLItem} className="text-xs text-indigo-400 hover:text-indigo-300">+ Add item</button></div></div><div className="flex justify-end gap-2 mt-5"><button onClick={()=>setShowModal(false)} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm">Cancel</button><button onClick={saveTask} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium">Save</button></div></div></div>}
 
     </div>
   );
@@ -4858,6 +5361,8 @@ function daysSince(dateStr){
 }
 
 function ContactsView({contacts,setContacts,members,addLog}){
+  const confirmAsync=useConfirm();
+  const toast=useToast();
   const[cView,setCView]=useState("table");
   const[contactSort,setContactSort]=useState({col:"warmth",dir:"asc"});
   const[filterType,setFilterType]=useState("All");
@@ -4867,6 +5372,13 @@ function ContactsView({contacts,setContacts,members,addLog}){
   const[search,setSearch]=useState("");
   const[showModal,setShowModal]=useState(false);
   const[editContact,setEditContact]=useState(null);
+  // Close contact modal on Escape
+  useEffect(()=>{
+    if(!showModal)return;
+    function onKey(e){if(e.key==="Escape")setShowModal(false);}
+    document.addEventListener("keydown",onKey);
+    return()=>document.removeEventListener("keydown",onKey);
+  },[showModal]);
   const[activeContact,setActiveContact]=useState(null);
   const[logInput,setLogInput]=useState("");
   const[tagInput,setTagInput]=useState("");
@@ -4906,12 +5418,13 @@ function ContactsView({contacts,setContacts,members,addLog}){
     setShowModal(false);
   }
 
-  function deleteContact(id){
-    if(!confirm("Delete this contact? This cannot be undone.")) return;
+  async function deleteContact(id){
     const contact=contacts.find(x=>x.id===id);
+    const ok=await confirmAsync({title:"Delete contact?",message:"Delete \""+(contact?contact.name:"this contact")+"\"? This cannot be undone.",confirmLabel:"Delete",danger:true});
+    if(!ok)return;
     setContacts(cs=>cs.filter(x=>x.id!==id));
     if(activeContact&&activeContact.id===id) setActiveContact(null);
-    if(contact) addLog("task_update","Contact deleted: "+contact.name);
+    if(contact){addLog("task_update","Contact deleted: "+contact.name);toast("Contact deleted","success");}
   }
 
   function addLogEntry(contactId){
@@ -5049,7 +5562,7 @@ function ContactsView({contacts,setContacts,members,addLog}){
                       <td className="p-3">
                         <div className="flex gap-1" onClick={e=>e.stopPropagation()}>
                           <button onClick={()=>openEdit(c)} className="text-gray-500 hover:text-white p-1 text-xs">✏️</button>
-                          <button onClick={()=>deleteContact(c.id)} className="text-gray-500 hover:text-red-400 p-1 text-xs">🗑</button>
+                          <button onClick={()=>deleteContact(c.id)} className="text-gray-500 hover:text-red-400 p-1 text-xs" aria-label="Delete contact" title="Delete contact">🗑</button>
                         </div>
                       </td>
                     </tr>
@@ -5171,7 +5684,7 @@ function ContactsView({contacts,setContacts,members,addLog}){
                       const nad=c.nextActionDate?parseDate(c.nextActionDate):null;
                       const naOverdue=nad&&diffDays(nad,TODAY)>0;
                       return(
-                        <div key={c.id} onClick={()=>{setCView("table");setActiveContact(c);}} className={"bg-gray-900 border rounded-xl p-3 cursor-pointer hover:bg-gray-800 "+(naOverdue?"border-red-800":"border-gray-800")}>
+                        <div role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setCView("table");setActiveContact(c);}}} key={c.id} onClick={()=>{setCView("table");setActiveContact(c);}} className={"bg-gray-900 border rounded-xl p-3 cursor-pointer hover:bg-gray-800 "+(naOverdue?"border-red-800":"border-gray-800")}>
                           <div className="flex items-start justify-between gap-1 mb-1">
                             <div className="font-medium text-sm text-gray-200 leading-tight">{c.name}</div>
                             {c.warmth&&<span className={"w-2 h-2 rounded-full flex-shrink-0 mt-1 "+(WARMTH_STYLE[c.warmth]?.dot||"bg-gray-500")}/>}
@@ -5756,7 +6269,54 @@ function SystemHealth({gsUrl,gsConnected,gsClientRef,lastSyncRef,syncConflict,gs
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+
+// ── Simple inline test harness (URL ?test=1) ─────────────────────────────
+function runInlineTests(){
+  const tests=[];
+  function t(name,fn){tests.push({name,fn});}
+  function eq(a,b,msg){if(JSON.stringify(a)!==JSON.stringify(b))throw new Error((msg||"eq")+": expected "+JSON.stringify(b)+" got "+JSON.stringify(a));}
+  function truthy(v,msg){if(!v)throw new Error((msg||"truthy")+": got "+v);}
+
+  t("parseDate handles valid date",()=>{const d=parseDate("2026-05-08");truthy(d);eq(d.getDate(),8);});
+  t("parseDate handles empty",()=>{eq(parseDate(""),null);eq(parseDate(null),null);});
+  t("fmtDate roundtrips",()=>{const d=new Date(2026,4,8);eq(fmtDate(d),"2026-05-08");});
+  t("getNextThursday from Wed",()=>{const wed=new Date(2026,4,6);const thu=getNextThursday(wed);eq(thu.getDay(),4);eq(thu.getDate(),7);});
+  t("getNextThursday from Thu returns next week",()=>{const thu=new Date(2026,4,7);const next=getNextThursday(thu);eq(next.getDay(),4);eq(next.getDate(),14);});
+  t("diffDays positive",()=>{const a=new Date(2026,4,1);const b=new Date(2026,4,10);eq(diffDays(a,b),9);});
+  t("addDays adds correctly",()=>{const a=new Date(2026,4,1);const b=addDays(a,5);eq(b.getDate(),6);});
+  t("ACTIVE_STATUSES includes core statuses",()=>{truthy(ACTIVE_STATUSES.includes("Ongoing"));truthy(ACTIVE_STATUSES.includes("Blocked"));truthy(ACTIVE_STATUSES.includes("Not Started"));});
+  t("isActive returns true for Blocked",()=>{eq(isActive({status:"Blocked"}),true);});
+  t("isActive returns false for Complete",()=>{eq(isActive({status:"Complete"}),false);});
+  t("uid is unique",()=>{const a=uid("x"),b=uid("x");truthy(a!==b);});
+  t("PRIORITY_STYLE has all priorities",()=>{PRIORITIES.forEach(p=>truthy(PRIORITY_STYLE[p],"missing "+p));});
+
+  const results=[];
+  tests.forEach(({name,fn})=>{
+    try{fn();results.push({name,pass:true});}
+    catch(e){results.push({name,pass:false,error:e.message});}
+  });
+  const passed=results.filter(r=>r.pass).length;
+  const total=results.length;
+  // Render a corner overlay
+  const overlay=document.createElement("div");
+  overlay.style.cssText="position:fixed;bottom:24px;left:24px;background:#0f172a;color:#fff;padding:14px 18px;border-radius:10px;font-family:monospace;font-size:13px;z-index:99999;max-width:420px;border:2px solid "+(passed===total?"#16a34a":"#dc2626")+";box-shadow:0 8px 32px rgba(0,0,0,0.5)";
+  overlay.innerHTML="<div style=\"font-weight:bold;margin-bottom:8px;font-size:14px\">Tests: "+passed+" / "+total+" passed</div>"+results.map(r=>"<div style=\"color:"+(r.pass?"#4ade80":"#f87171")+"\">"+(r.pass?"✓":"✗")+" "+r.name+(r.error?"<br><span style=\"color:#94a3b8;font-size:11px;margin-left:14px\">"+r.error+"</span>":"")+"</div>").join("")+"<div style=\"margin-top:8px;font-size:11px;color:#64748b;cursor:pointer\" onclick=\"this.parentNode.remove()\">click to dismiss</div>";
+  document.body.appendChild(overlay);
+  console.log("[tests]",passed+"/"+total,results);
+}
+if(typeof window!=="undefined"&&window.location.search.includes("test=1")){
+  setTimeout(runInlineTests,500);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(ErrorBoundary, null,
+    React.createElement(ToastProvider, null,
+      React.createElement(ConfirmProvider, null,
+        React.createElement(App)
+      )
+    )
+  )
+);
 
 </script>
 <script>
@@ -5764,7 +6324,26 @@ ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(
   function run(){
     try{
       var src=document.getElementById('app-jsx').textContent;
-      var result=Babel.transform(src,{presets:[['react',{runtime:'classic'}]],filename:'app.jsx'});
+      // Cache compiled JS in localStorage — first load slow, subsequent loads instant.
+      // Cache key includes a hash of the source so any code change invalidates it.
+      var srcHash = 0;
+      for(var i=0;i<src.length;i++){srcHash=((srcHash<<5)-srcHash)+src.charCodeAt(i);srcHash|=0;}
+      var cacheKey = 'ls_babel_cache_v1_'+srcHash;
+      var cached = null;
+      try{cached = localStorage.getItem(cacheKey);}catch(e){}
+      var result;
+      if(cached){
+        result = {code: cached};
+      } else {
+        result = Babel.transform(src,{presets:[['react',{runtime:'classic'}]],filename:'app.jsx'});
+        // Clear any stale cache entries
+        try{
+          for(var k in localStorage){
+            if(k.indexOf('ls_babel_cache_v1_')===0 && k!==cacheKey) localStorage.removeItem(k);
+          }
+          localStorage.setItem(cacheKey, result.code);
+        }catch(e){/* quota or private mode — non-fatal */}
+      }
       (new Function(result.code))();
     }catch(e){
       document.getElementById('root').innerHTML=
