@@ -3773,14 +3773,30 @@ function WorkstreamColumn({ws,tasks,sectionFor,SECTION_ORDER,SECTION_META,HEALTH
   tasks.forEach(t=>{const s=sectionFor(t.status);if(s)grouped[s].push(t);});
   const meta=HEALTH_META[health.health||""];
 
-  // Health popup
+  // Health popup — rendered position:fixed so it escapes the parent's overflow clipping
   const[showHealthPicker,setShowHealthPicker]=useState(false);
-  const healthRef=useRef(null);
+  const[pickerPos,setPickerPos]=useState({top:0,right:0});
+  const healthBtnRef=useRef(null);
+  const healthPickerRef=useRef(null);
+  function openHealthPicker(){
+    if(healthBtnRef.current){
+      const r=healthBtnRef.current.getBoundingClientRect();
+      // Anchor below the button, right-aligned with it
+      setPickerPos({top:r.bottom+4,right:Math.max(8,window.innerWidth-r.right)});
+    }
+    setShowHealthPicker(s=>!s);
+  }
   useEffect(()=>{
     if(!showHealthPicker) return;
-    function onDoc(e){if(healthRef.current&&!healthRef.current.contains(e.target))setShowHealthPicker(false);}
+    function onDoc(e){
+      const inBtn=healthBtnRef.current&&healthBtnRef.current.contains(e.target);
+      const inPicker=healthPickerRef.current&&healthPickerRef.current.contains(e.target);
+      if(!inBtn&&!inPicker) setShowHealthPicker(false);
+    }
+    function onScroll(){setShowHealthPicker(false);}
     document.addEventListener("mousedown",onDoc);
-    return ()=>document.removeEventListener("mousedown",onDoc);
+    window.addEventListener("scroll",onScroll,true);
+    return ()=>{document.removeEventListener("mousedown",onDoc);window.removeEventListener("scroll",onScroll,true);};
   },[showHealthPicker]);
 
   return(
@@ -3790,30 +3806,30 @@ function WorkstreamColumn({ws,tasks,sectionFor,SECTION_ORDER,SECTION_META,HEALTH
         <div className="flex items-center gap-2 mb-2">
           <div className={"w-3 h-3 rounded-full flex-shrink-0 "+ws.dot}/>
           <span className="font-semibold text-gray-200 text-sm flex-1 truncate" title={ws.name}>{ws.name}</span>
-          {/* Clickable RAG pill — opens picker above it */}
-          <div className="relative" ref={healthRef}>
-            <button onClick={()=>setShowHealthPicker(s=>!s)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs hover:opacity-90 transition-all"
-              style={{background:meta.bg,border:"1px solid "+meta.border,color:meta.dot==="#6b7280"?"#9ca3af":meta.dot}}
-              title="Click to set workstream health">
-              <div className="w-2 h-2 rounded-full" style={{background:meta.dot}}/>
-              <span className="font-medium">{meta.label}</span>
-            </button>
-            {showHealthPicker&&<div className="absolute right-0 z-30 mb-1 bg-gray-800 border border-gray-700 rounded-xl shadow-xl p-2" style={{bottom:"100%",minWidth:160}}>
-              <p className="text-xs text-gray-500 mb-1.5 px-1">Set health</p>
-              <div className="flex flex-col gap-1">
-                {["green","amber","red",""].map(h=>{const m=HEALTH_META[h];return(
-                  <button key={h||"none"} onClick={()=>{onHealthChange({health:h});setShowHealthPicker(false);}}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs hover:bg-gray-700/60 text-left"
-                    style={{color:h&&m.dot!=="#6b7280"?m.dot:"#9ca3af"}}>
-                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:m.dot}}/>
-                    <span>{h?m.label:"None"}</span>
-                    {(health.health||"")===h&&<span className="ml-auto text-indigo-400">✓</span>}
-                  </button>
-                );})}
-              </div>
-            </div>}
-          </div>
+          {/* Clickable RAG pill — opens picker as a fixed-position floating menu */}
+          <button ref={healthBtnRef} onClick={openHealthPicker}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs hover:opacity-90 transition-all"
+            style={{background:meta.bg,border:"1px solid "+meta.border,color:meta.dot==="#6b7280"?"#9ca3af":meta.dot}}
+            title="Click to set workstream health">
+            <div className="w-2 h-2 rounded-full" style={{background:meta.dot}}/>
+            <span className="font-medium">{meta.label}</span>
+          </button>
+          {showHealthPicker&&<div ref={healthPickerRef}
+            className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-2"
+            style={{position:"fixed",top:pickerPos.top,right:pickerPos.right,zIndex:100,minWidth:160}}>
+            <p className="text-xs text-gray-500 mb-1.5 px-1">Set health</p>
+            <div className="flex flex-col gap-1">
+              {["green","amber","red",""].map(h=>{const m=HEALTH_META[h];return(
+                <button key={h||"none"} onClick={()=>{onHealthChange({health:h});setShowHealthPicker(false);}}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs hover:bg-gray-700/60 text-left"
+                  style={{color:h&&m.dot!=="#6b7280"?m.dot:"#9ca3af"}}>
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:m.dot}}/>
+                  <span>{h?m.label:"None"}</span>
+                  {(health.health||"")===h&&<span className="ml-auto text-indigo-400">✓</span>}
+                </button>
+              );})}
+            </div>
+          </div>}
         </div>
         {/* Status note — ALWAYS visible textarea */}
         <textarea
@@ -3954,6 +3970,18 @@ function TaskRow({t,getMember,jumpToTask,openEdit,setTasks,meetingDateKey,meetin
 }
 
 
+// ── Agenda helpers ───────────────────────────────────────────────────────────
+// A line counts as "marked done" (and will be skipped by "Copy all unfinished")
+// if it starts with a tick mark, contains [x], or is prefixed with "DONE -" / "DONE:".
+function isAgendaLineMarkedDone(line){
+  const t=(line||"").trim();
+  if(!t) return false;
+  if(/^[✓✔☑]/.test(t)) return true;
+  if(/\[x\]/i.test(t)) return true;
+  if(/^done\s*[-–—:]/i.test(t)) return true;
+  return false;
+}
+
 // ── AgendaPanel: agenda for a date the user can change (defaults to next meeting) ─
 function AgendaPanel({nextMeeting,agendaText,setAgendaText,agendaStructure,agendaHistory,setAgendaHistory,saveAgenda,saving,saved,handleChange,setSaved,fmtMeetingDate,scheduledMeetings,setMeetingSchedule,meetingSchedule}){
   const todayStr=fmtDate(new Date());
@@ -4033,14 +4061,8 @@ function AgendaPanel({nextMeeting,agendaText,setAgendaText,agendaStructure,agend
   function copyAllUnticked(){
     if(!previousEntry) return;
     const lines=(previousEntry.text||"").split(/\r?\n/);
-    // Skip lines that look already complete (tick mark, [x], strikethrough markers)
-    const carryable=lines.filter(l=>{
-      const t=l.trim();
-      if(!t) return false;
-      if(/^[✓✔☑]/.test(t)) return false;
-      if(/\[x\]/i.test(t)) return false;
-      return true;
-    });
+    // Skip blank lines and anything marked done (tick / [x] / DONE - prefix)
+    const carryable=lines.filter(l=>l.trim()&&!isAgendaLineMarkedDone(l));
     if(!carryable.length) return;
     const block=carryable.join("\n");
     if(isCurrentDate){
@@ -4125,12 +4147,12 @@ function AgendaCompare({previousEntry,isCurrentDate,activeText,onChangeActive,on
   return(
     <div>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-gray-500">Click <span className="text-indigo-400 font-medium">→</span> to copy a line from last meeting into this one. Items already in the new agenda are dimmed.</p>
+        <p className="text-xs text-gray-500">Click <span className="text-indigo-400 font-medium">→</span> to copy a line into the new agenda. Lines prefixed with <span className="text-gray-300 font-mono">DONE -</span> (or starting with ✓ / [x]) will be skipped by Copy all.</p>
         <button onClick={onCopyAll} className="text-xs bg-indigo-700 hover:bg-indigo-600 px-2.5 py-1 rounded-lg text-indigo-100" title="Copy all lines that don't look already done">
           ⇒ Copy all unfinished
         </button>
       </div>
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-3 grid-cols-2">
         {/* LEFT: previous agenda, read-only with per-line copy buttons */}
         <div className="bg-gray-900/60 border border-gray-800 rounded-lg overflow-hidden flex flex-col" style={{height:480}}>
           <div className="px-3 py-2 border-b border-gray-800 bg-gray-900/80 flex items-center gap-2 flex-shrink-0">
@@ -4143,12 +4165,14 @@ function AgendaCompare({previousEntry,isCurrentDate,activeText,onChangeActive,on
               :prevLines.map((line,i)=>{
                 const empty=!line.trim();
                 if(empty) return <div key={i} style={{height:8}}/>;
-                const done=carried.has(i)||isAlreadyIn(line);
+                const markedDone=isAgendaLineMarkedDone(line);
+                const inNew=carried.has(i)||isAlreadyIn(line);
+                const skip=markedDone||inNew; // either reason hides the → button
                 return(
-                  <div key={i} className={"flex items-start gap-2 px-2 py-1 rounded hover:bg-gray-800/50 group "+(done?"opacity-40":"")}>
-                    <span className="text-xs text-gray-300 leading-relaxed flex-1 whitespace-pre-wrap">{line}</span>
-                    {!done&&<button onClick={()=>carry(i,line)} title="Copy this line into the new agenda" className="text-xs px-1.5 py-0.5 rounded bg-indigo-700 hover:bg-indigo-600 text-indigo-100 flex-shrink-0">→</button>}
-                    {done&&<span className="text-xs text-green-500 flex-shrink-0">✓</span>}
+                  <div key={i} className={"flex items-start gap-2 px-2 py-1 rounded hover:bg-gray-800/50 group "+(skip?"opacity-40":"")}>
+                    <span className={"text-xs text-gray-300 leading-relaxed flex-1 whitespace-pre-wrap"+(markedDone?" line-through":"")}>{line}</span>
+                    {!skip&&<button onClick={()=>carry(i,line)} title="Copy this line into the new agenda" className="text-xs px-1.5 py-0.5 rounded bg-indigo-700 hover:bg-indigo-600 text-indigo-100 flex-shrink-0">→</button>}
+                    {!markedDone&&inNew&&<span className="text-xs text-green-500 flex-shrink-0" title="Already in new agenda">✓</span>}
                   </div>
                 );
               })
