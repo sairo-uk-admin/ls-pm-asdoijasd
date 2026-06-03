@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIVESYNC — Fundraising Dataroom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #0036db; --white: #ffffff; --black: #252525; --red: #e52626;
+      --panel: #f4f6fb; --border: #d4dae8; --text-muted: rgba(37,37,37,0.45);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Raleway', sans-serif; font-weight: 400; color: var(--black); background: var(--white); min-height: 100vh; }
+
+    .top-bar { background: var(--blue); color: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(24px,5vw,64px); height: 52px; position: sticky; top: 0; z-index: 100; }
+    .top-bar-left { display: flex; align-items: center; gap: 14px; }
+    .livesync-wordmark svg { height: 19px; display: block; }
+    .top-bar-label { font-size: 0.68rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; border-left: 1px solid rgba(255,255,255,0.25); padding-left: 14px; }
+    .top-bar-right { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.55; }
+
+    .page-wrap { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 52px); }
+    .sidebar { border-right: 1px solid var(--border); padding: 36px 0; position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; }
+    .sidebar-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); padding: 0 24px; margin-bottom: 14px; }
+    .nav-item { display: block; padding: 8px 24px; font-size: 0.78rem; color: var(--black); text-decoration: none; cursor: pointer; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; }
+    .nav-item:hover { background: var(--panel); color: var(--blue); border-left-color: var(--blue); }
+    .nav-item.active { color: var(--blue); border-left-color: var(--blue); font-weight: 700; background: var(--panel); }
+    .nav-emoji { margin-right: 6px; }
+
+    .main { padding: clamp(32px,4vw,56px) clamp(32px,5vw,72px); max-width: 920px; }
+    .page-header { margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-size: clamp(1.6rem,3.5vw,2.2rem); font-weight: 700; line-height: 1.15; margin-bottom: 10px; }
+    .page-header p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; max-width: 60ch; }
+    .header-meta { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .meta-chip { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); background: var(--panel); border: 1px solid var(--border); border-radius: 100px; padding: 5px 12px; }
+
+    .banner { display: flex; align-items: center; justify-content: space-between; gap: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-bottom: 40px; }
+    .banner .b-text { display: flex; align-items: center; gap: 14px; }
+    .banner .b-icon { width: 38px; height: 38px; border-radius: 50%; background: rgba(0,54,219,0.08); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .banner .b-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
+    .banner .b-sub { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+    .b-btn-locked { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; white-space: nowrap; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px; }
+    .b-btn-active { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); background: var(--blue); border: 1px solid var(--blue); border-radius: 8px; padding: 9px 14px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: opacity 0.15s ease; }
+    .b-btn-active:hover { opacity: 0.85; }
+    .b-back { font-size: 0.75rem; font-weight: 700; color: var(--blue); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .b-back:hover { text-decoration: underline; }
+
+    .section-group { margin-bottom: 48px; scroll-margin-top: 72px; }
+    .section-header { display: flex; align-items: baseline; gap: 10px; }
+    .section-title { font-size: clamp(1rem,2vw,1.1rem); font-weight: 700; }
+    .section-number { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+    .section-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; margin-top: 6px; max-width: 60ch; }
+    .section-rule { height: 1px; background: var(--border); margin: 14px 0 0 0; }
+
+    .item-row { display: grid; grid-template-columns: 48px 1fr auto auto; align-items: start; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+    .item-row:last-child { border-bottom: none; }
+    .item-num-col { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); padding-top: 2px; }
+    .item-name { font-size: 0.9rem; font-weight: 600; line-height: 1.4; margin-bottom: 4px; }
+    .item-description { font-size: 0.8rem; color: var(--text-muted); line-height: 1.55; max-width: 55ch; }
+    .item-description.na { font-style: italic; }
+    .item-links { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .item-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; color: var(--blue); background: rgba(0,54,219,0.06); border: 1px solid rgba(0,54,219,0.2); border-radius: 8px; padding: 7px 12px; text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
+    .item-btn:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+    .item-date { font-family: Verdana, sans-serif; font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; padding-top: 3px; min-width: 72px; text-align: right; }
+
+    .state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 40px; text-align: center; color: var(--text-muted); }
+    .state-box .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-box p { font-size: 0.85rem; line-height: 1.6; }
+    .state-box .hint { margin-top: 18px; font-size: 0.78rem; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; text-align: left; max-width: 480px; color: var(--black); line-height: 1.7; }
+    .state-box .hint code { font-family: monospace; font-size: 0.74rem; background: rgba(0,54,219,0.06); padding: 2px 6px; border-radius: 4px; color: var(--blue); }
+
+    .bottom-bar { background: var(--blue); color: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 14px clamp(24px,5vw,64px); margin-top: 40px; }
+    .bottom-bar .livesync-logo svg { height: 15px; display: block; }
+    .bottom-bar .right { font-weight: 400; opacity: 0.5; font-size: 0.65rem; letter-spacing: 0.06em; }
+
+    @media (max-width: 760px) {
+      .page-wrap { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .item-row { grid-template-columns: 40px 1fr; }
+      .item-links { align-items: flex-start; grid-column: 2; }
+      .item-date { grid-column: 2; text-align: left; }
+      .banner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <span class="livesync-wordmark"><svg width="128" height="19" viewBox="0 0 256 38" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="5" transform="matrix(1 0 0 -1 1 11)" fill="#E52626"/><path d="M237.01 20.351V26.7688C237.01 27.8652 237.373 28.7075 238.099 29.2958C238.851 29.8841 239.819 30.1783 241.002 30.1783C242.211 30.1783 243.085 29.9911 243.622 29.6167C244.16 29.2423 244.603 28.6941 244.953 27.9721C245.329 27.2501 245.813 26.8891 246.404 26.8891H255.113C255.355 26.8891 255.557 26.9827 255.718 27.1699C255.906 27.3304 256 27.5309 256 27.7716C256 30.2585 254.817 32.5315 252.452 34.5905C251.269 35.6067 249.697 36.4356 247.735 37.0774C245.773 37.6925 243.461 38 240.8 38C238.139 38 235.706 37.5989 233.502 36.7966C231.325 35.9677 229.551 34.6306 228.18 32.7855C226.809 30.9136 226.124 28.6273 226.124 25.9265V21.1933C226.124 18.4925 226.809 16.2061 228.18 14.3343C230.761 10.858 235.075 9.11981 241.123 9.11981C243.568 9.11981 245.773 9.4407 247.735 10.0825C249.697 10.6975 251.269 11.5131 252.452 12.5293C254.817 14.5883 256 16.8613 256 19.3482C256 19.5889 255.906 19.8028 255.718 19.99C255.557 20.1504 255.355 20.2307 255.113 20.2307H246.404C245.813 20.2307 245.329 19.8697 244.953 19.1476C244.603 18.4256 244.16 17.8775 243.622 17.5031C243.085 17.1287 242.211 16.9415 241.002 16.9415C239.819 16.9415 238.851 17.2357 238.099 17.824C237.373 18.4123 237.01 19.2546 237.01 20.351Z" fill="white"/><path d="M214.788 9.11981H222.078C222.366 9.11981 222.614 9.22604 222.823 9.43849C223.032 9.65094 223.136 9.90323 223.136 10.1953V35.9286C223.136 36.2207 223.032 36.473 222.823 36.6854C222.614 36.8979 222.366 37.0041 222.078 37.0041H215.768C215.14 37.0041 214.618 36.7253 214.2 36.1676L205.655 25.0935V35.9286C205.655 36.2207 205.551 36.473 205.342 36.6854C205.132 36.8979 204.884 37.0041 204.597 37.0041H197.306C197.019 37.0041 196.771 36.8979 196.562 36.6854C196.353 36.473 196.248 36.2207 196.248 35.9286V10.1953C196.248 9.90323 196.353 9.65094 196.562 9.43849C196.771 9.22604 197.019 9.11981 197.306 9.11981H203.656C204.283 9.11981 204.793 9.38538 205.185 9.91651L213.729 21.9068V10.1953C213.729 9.90323 213.834 9.65094 214.043 9.43849C214.252 9.22604 214.5 9.11981 214.788 9.11981Z" fill="white"/><path d="M185.066 9.11981H193.381C193.62 9.11981 193.819 9.21276 193.978 9.39866C194.163 9.55799 194.256 9.73061 194.256 9.91651C194.256 10.1024 194.216 10.275 194.137 10.4344L184.111 27.0454V35.9286C184.111 36.2207 184.005 36.473 183.793 36.6854C183.581 36.8979 183.329 37.0041 183.037 37.0041H174.563C174.272 37.0041 174.02 36.8979 173.808 36.6854C173.595 36.473 173.489 36.2207 173.489 35.9286V27.0454L163.504 10.4344C163.424 10.275 163.384 10.1024 163.384 9.91651C163.384 9.73061 163.464 9.55799 163.623 9.39866C163.809 9.21276 164.021 9.11981 164.26 9.11981H172.654C173.396 9.11981 173.94 9.42521 174.285 10.036L178.78 17.9233L183.395 10.1157C183.793 9.45177 184.35 9.11981 185.066 9.11981Z" fill="white"/><path d="M151.247 19.7092C155.627 20.2173 158.738 21.1666 160.58 22.5571C162.449 23.9209 163.384 25.9799 163.384 28.7343C163.384 31.4886 162.036 33.7214 159.338 35.4329C156.641 37.1443 153.063 38 148.604 38C144.144 38 140.672 37.1844 138.189 35.5532C135.732 33.8952 134.504 31.8629 134.504 29.4563C134.504 28.868 134.811 28.5738 135.425 28.5738H143.637C144.197 28.5738 144.651 28.7476 144.999 29.0953C145.746 29.8173 147.041 30.1783 148.884 30.1783C151.421 30.1783 152.689 29.7905 152.689 29.015C152.689 28.5337 152.289 28.1593 151.488 27.8919C150.686 27.5978 149.098 27.317 146.721 27.0496C139.164 26.1404 135.385 23.239 135.385 18.3454C135.385 15.5911 136.6 13.3716 139.03 11.6869C141.46 9.97552 144.705 9.11981 148.764 9.11981C152.849 9.11981 156.147 10.0156 158.657 11.8073C161.168 13.5722 162.423 15.444 162.423 17.4229C162.423 17.6903 162.329 17.9042 162.142 18.0646C161.982 18.2251 161.755 18.3053 161.461 18.3053H152.849C152.369 18.3053 151.955 18.1449 151.608 17.824C150.967 17.2357 150.005 16.9415 148.724 16.9415C146.935 16.9415 146.04 17.3159 146.04 18.0646C146.04 18.4658 146.387 18.7866 147.081 19.0273C147.776 19.2412 149.164 19.4685 151.247 19.7092Z" fill="white"/><path d="M115.815 29.2363H131.454C131.742 29.2363 131.99 29.3426 132.199 29.555C132.408 29.7675 132.512 30.0198 132.512 30.3119V35.9286C132.512 36.2207 132.408 36.473 132.199 36.6854C131.99 36.8979 131.742 37.0041 131.454 37.0041H106.682C106.395 37.0041 106.147 36.8979 105.938 36.6854C105.729 36.473 105.624 36.2207 105.624 35.9286V10.1953C105.624 9.90323 105.729 9.65094 105.938 9.43849C106.147 9.22604 106.395 9.11981 106.682 9.11981H131.062C131.35 9.11981 131.598 9.22604 131.807 9.43849C132.016 9.65094 132.12 9.90323 132.12 10.1953V15.812C132.12 16.1042 132.016 16.3565 131.807 16.5689C131.598 16.7814 131.35 16.8876 131.062 16.8876H115.815V19.3972H128.906C129.194 19.3972 129.442 19.5034 129.651 19.7158C129.86 19.9283 129.965 20.1806 129.965 20.4727V25.6512C129.965 25.9433 129.86 26.1956 129.651 26.4081C129.442 26.6205 129.194 26.7268 128.906 26.7268H115.815V29.2363Z" fill="white"/><path d="M94.4806 9.11981H102.768C103.004 9.11981 103.2 9.21276 103.357 9.39866C103.541 9.55799 103.632 9.71733 103.632 9.87667C103.632 10.036 103.619 10.1688 103.593 10.275L94.5591 35.6896C94.2711 36.5659 93.6819 37.0041 92.7916 37.0041H83.64C82.7759 37.0041 82.1999 36.6058 81.9118 35.8091L72.7995 10.275C72.7733 10.1688 72.7603 10.036 72.7603 9.87667C72.7603 9.71733 72.8388 9.55799 72.9959 9.39866C73.1792 9.21276 73.3887 9.11981 73.6244 9.11981H81.9118C82.3832 9.11981 82.7629 9.26587 83.0509 9.558C83.3651 9.82356 83.5746 10.1157 83.6793 10.4344L88.1962 25.6911L92.7131 10.4344C92.9487 9.55799 93.5379 9.11981 94.4806 9.11981Z" fill="white"/><path d="M69.6743 17.2859H62.3384V28.838H69.6743C69.9715 28.838 70.2282 28.9442 70.4443 29.1567C70.6605 29.3691 70.7686 29.6214 70.7686 29.9135V35.9286C70.7686 36.2207 70.6605 36.473 70.4443 36.6854C70.2282 36.8979 69.9715 37.0041 69.6743 37.0041H43.9786C43.6814 37.0041 43.4247 36.8979 43.2085 36.6854C42.9924 36.473 42.8843 36.2207 42.8843 35.9286V29.9135C42.8843 29.6214 42.9924 29.3691 43.2085 29.1567C43.4247 28.9442 43.6814 28.838 43.9786 28.838H51.3955V17.2859H43.9786C43.6814 17.2859 43.4247 17.1797 43.2085 16.9673C42.9924 16.7548 42.8843 16.5025 42.8843 16.2104V10.1953C42.8843 9.90323 42.9924 9.65094 43.2085 9.43849C43.4247 9.22604 43.6814 9.11981 43.9786 9.11981H69.6743C69.9715 9.11981 70.2282 9.22604 70.4443 9.43849C70.6605 9.65094 70.7686 9.90323 70.7686 10.1953V16.2104C70.7686 16.5025 70.6605 16.7548 70.4443 16.9673C70.2282 17.1797 69.9715 17.2859 69.6743 17.2859Z" fill="white"/><path d="M25.9577 28.838H39.7968C40.0944 28.838 40.3514 28.9442 40.5679 29.1567C40.7843 29.3691 40.8926 29.6214 40.8926 29.9135V35.9286C40.8926 36.2207 40.7843 36.473 40.5679 36.6854C40.3514 36.8979 40.0944 37.0041 39.7968 37.0041H16.0958C15.7982 37.0041 15.5411 36.8979 15.3247 36.6854C15.1082 36.473 15 36.2207 15 35.9286V10.1953C15 9.90323 15.1082 9.65094 15.3247 9.43849C15.5411 9.22604 15.7982 9.11981 16.0958 9.11981H24.8619C25.1595 9.11981 25.4165 9.22604 25.633 9.43849C25.8494 9.65094 25.9577 9.90323 25.9577 10.1953V28.838Z" fill="white"/></svg></span>
+      <span class="top-bar-label">Fundraising</span>
+    </div>
+    <div class="top-bar-right" id="last-refresh">Loading…</div>
+  </div>
+
+  <div class="page-wrap">
+    <nav class="sidebar">
+      <div class="sidebar-label">Sections</div>
+      <div id="nav-links"></div>
+    </nav>
+    <main class="main">
+      <div class="page-header">
+        <h1>Fundraising Dataroom</h1>
+        <p>Materials prepared for investor review. Data is pulled live from the source sheet — refresh to see the latest.</p>
+        <div class="header-meta">
+          <span class="meta-chip" id="item-count">—</span>
+          <span class="meta-chip">Fundraising</span><span class="meta-chip">Confidential</span>
+        </div>
+      </div>
+      <div id="banner-slot"></div>
+      <div id="content">
+        <div class="state-box"><div class="spinner"></div><p>Loading dataroom…</p></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="livesync-logo"><svg width="100" height="15" viewBox="0 0 256 38" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="5" transform="matrix(1 0 0 -1 1 11)" fill="#E52626"/><path d="M237.01 20.351V26.7688C237.01 27.8652 237.373 28.7075 238.099 29.2958C238.851 29.8841 239.819 30.1783 241.002 30.1783C242.211 30.1783 243.085 29.9911 243.622 29.6167C244.16 29.2423 244.603 28.6941 244.953 27.9721C245.329 27.2501 245.813 26.8891 246.404 26.8891H255.113C255.355 26.8891 255.557 26.9827 255.718 27.1699C255.906 27.3304 256 27.5309 256 27.7716C256 30.2585 254.817 32.5315 252.452 34.5905C251.269 35.6067 249.697 36.4356 247.735 37.0774C245.773 37.6925 243.461 38 240.8 38C238.139 38 235.706 37.5989 233.502 36.7966C231.325 35.9677 229.551 34.6306 228.18 32.7855C226.809 30.9136 226.124 28.6273 226.124 25.9265V21.1933C226.124 18.4925 226.809 16.2061 228.18 14.3343C230.761 10.858 235.075 9.11981 241.123 9.11981C243.568 9.11981 245.773 9.4407 247.735 10.0825C249.697 10.6975 251.269 11.5131 252.452 12.5293C254.817 14.5883 256 16.8613 256 19.3482C256 19.5889 255.906 19.8028 255.718 19.99C255.557 20.1504 255.355 20.2307 255.113 20.2307H246.404C245.813 20.2307 245.329 19.8697 244.953 19.1476C244.603 18.4256 244.16 17.8775 243.622 17.5031C243.085 17.1287 242.211 16.9415 241.002 16.9415C239.819 16.9415 238.851 17.2357 238.099 17.824C237.373 18.4123 237.01 19.2546 237.01 20.351Z" fill="white"/><path d="M214.788 9.11981H222.078C222.366 9.11981 222.614 9.22604 222.823 9.43849C223.032 9.65094 223.136 9.90323 223.136 10.1953V35.9286C223.136 36.2207 223.032 36.473 222.823 36.6854C222.614 36.8979 222.366 37.0041 222.078 37.0041H215.768C215.14 37.0041 214.618 36.7253 214.2 36.1676L205.655 25.0935V35.9286C205.655 36.2207 205.551 36.473 205.342 36.6854C205.132 36.8979 204.884 37.0041 204.597 37.0041H197.306C197.019 37.0041 196.771 36.8979 196.562 36.6854C196.353 36.473 196.248 36.2207 196.248 35.9286V10.1953C196.248 9.90323 196.353 9.65094 196.562 9.43849C196.771 9.22604 197.019 9.11981 197.306 9.11981H203.656C204.283 9.11981 204.793 9.38538 205.185 9.91651L213.729 21.9068V10.1953C213.729 9.90323 213.834 9.65094 214.043 9.43849C214.252 9.22604 214.5 9.11981 214.788 9.11981Z" fill="white"/><path d="M185.066 9.11981H193.381C193.62 9.11981 193.819 9.21276 193.978 9.39866C194.163 9.55799 194.256 9.73061 194.256 9.91651C194.256 10.1024 194.216 10.275 194.137 10.4344L184.111 27.0454V35.9286C184.111 36.2207 184.005 36.473 183.793 36.6854C183.581 36.8979 183.329 37.0041 183.037 37.0041H174.563C174.272 37.0041 174.02 36.8979 173.808 36.6854C173.595 36.473 173.489 36.2207 173.489 35.9286V27.0454L163.504 10.4344C163.424 10.275 163.384 10.1024 163.384 9.91651C163.384 9.73061 163.464 9.55799 163.623 9.39866C163.809 9.21276 164.021 9.11981 164.26 9.11981H172.654C173.396 9.11981 173.94 9.42521 174.285 10.036L178.78 17.9233L183.395 10.1157C183.793 9.45177 184.35 9.11981 185.066 9.11981Z" fill="white"/><path d="M151.247 19.7092C155.627 20.2173 158.738 21.1666 160.58 22.5571C162.449 23.9209 163.384 25.9799 163.384 28.7343C163.384 31.4886 162.036 33.7214 159.338 35.4329C156.641 37.1443 153.063 38 148.604 38C144.144 38 140.672 37.1844 138.189 35.5532C135.732 33.8952 134.504 31.8629 134.504 29.4563C134.504 28.868 134.811 28.5738 135.425 28.5738H143.637C144.197 28.5738 144.651 28.7476 144.999 29.0953C145.746 29.8173 147.041 30.1783 148.884 30.1783C151.421 30.1783 152.689 29.7905 152.689 29.015C152.689 28.5337 152.289 28.1593 151.488 27.8919C150.686 27.5978 149.098 27.317 146.721 27.0496C139.164 26.1404 135.385 23.239 135.385 18.3454C135.385 15.5911 136.6 13.3716 139.03 11.6869C141.46 9.97552 144.705 9.11981 148.764 9.11981C152.849 9.11981 156.147 10.0156 158.657 11.8073C161.168 13.5722 162.423 15.444 162.423 17.4229C162.423 17.6903 162.329 17.9042 162.142 18.0646C161.982 18.2251 161.755 18.3053 161.461 18.3053H152.849C152.369 18.3053 151.955 18.1449 151.608 17.824C150.967 17.2357 150.005 16.9415 148.724 16.9415C146.935 16.9415 146.04 17.3159 146.04 18.0646C146.04 18.4658 146.387 18.7866 147.081 19.0273C147.776 19.2412 149.164 19.4685 151.247 19.7092Z" fill="white"/><path d="M115.815 29.2363H131.454C131.742 29.2363 131.99 29.3426 132.199 29.555C132.408 29.7675 132.512 30.0198 132.512 30.3119V35.9286C132.512 36.2207 132.408 36.473 132.199 36.6854C131.99 36.8979 131.742 37.0041 131.454 37.0041H106.682C106.395 37.0041 106.147 36.8979 105.938 36.6854C105.729 36.473 105.624 36.2207 105.624 35.9286V10.1953C105.624 9.90323 105.729 9.65094 105.938 9.43849C106.147 9.22604 106.395 9.11981 106.682 9.11981H131.062C131.35 9.11981 131.598 9.22604 131.807 9.43849C132.016 9.65094 132.12 9.90323 132.12 10.1953V15.812C132.12 16.1042 132.016 16.3565 131.807 16.5689C131.598 16.7814 131.35 16.8876 131.062 16.8876H115.815V19.3972H128.906C129.194 19.3972 129.442 19.5034 129.651 19.7158C129.86 19.9283 129.965 20.1806 129.965 20.4727V25.6512C129.965 25.9433 129.86 26.1956 129.651 26.4081C129.442 26.6205 129.194 26.7268 128.906 26.7268H115.815V29.2363Z" fill="white"/><path d="M94.4806 9.11981H102.768C103.004 9.11981 103.2 9.21276 103.357 9.39866C103.541 9.55799 103.632 9.71733 103.632 9.87667C103.632 10.036 103.619 10.1688 103.593 10.275L94.5591 35.6896C94.2711 36.5659 93.6819 37.0041 92.7916 37.0041H83.64C82.7759 37.0041 82.1999 36.6058 81.9118 35.8091L72.7995 10.275C72.7733 10.1688 72.7603 10.036 72.7603 9.87667C72.7603 9.71733 72.8388 9.55799 72.9959 9.39866C73.1792 9.21276 73.3887 9.11981 73.6244 9.11981H81.9118C82.3832 9.11981 82.7629 9.26587 83.0509 9.558C83.3651 9.82356 83.5746 10.1157 83.6793 10.4344L88.1962 25.6911L92.7131 10.4344C92.9487 9.55799 93.5379 9.11981 94.4806 9.11981Z" fill="white"/><path d="M69.6743 17.2859H62.3384V28.838H69.6743C69.9715 28.838 70.2282 28.9442 70.4443 29.1567C70.6605 29.3691 70.7686 29.6214 70.7686 29.9135V35.9286C70.7686 36.2207 70.6605 36.473 70.4443 36.6854C70.2282 36.8979 69.9715 37.0041 69.6743 37.0041H43.9786C43.6814 37.0041 43.4247 36.8979 43.2085 36.6854C42.9924 36.473 42.8843 36.2207 42.8843 35.9286V29.9135C42.8843 29.6214 42.9924 29.3691 43.2085 29.1567C43.4247 28.9442 43.6814 28.838 43.9786 28.838H51.3955V17.2859H43.9786C43.6814 17.2859 43.4247 17.1797 43.2085 16.9673C42.9924 16.7548 42.8843 16.5025 42.8843 16.2104V10.1953C42.8843 9.90323 42.9924 9.65094 43.2085 9.43849C43.4247 9.22604 43.6814 9.11981 43.9786 9.11981H69.6743C69.9715 9.11981 70.2282 9.22604 70.4443 9.43849C70.6605 9.65094 70.7686 9.90323 70.7686 10.1953V16.2104C70.7686 16.5025 70.6605 16.7548 70.4443 16.9673C70.2282 17.1797 69.9715 17.2859 69.6743 17.2859Z" fill="white"/><path d="M25.9577 28.838H39.7968C40.0944 28.838 40.3514 28.9442 40.5679 29.1567C40.7843 29.3691 40.8926 29.6214 40.8926 29.9135V35.9286C40.8926 36.2207 40.7843 36.473 40.5679 36.6854C40.3514 36.8979 40.0944 37.0041 39.7968 37.0041H16.0958C15.7982 37.0041 15.5411 36.8979 15.3247 36.6854C15.1082 36.473 15 36.2207 15 35.9286V10.1953C15 9.90323 15.1082 9.65094 15.3247 9.43849C15.5411 9.22604 15.7982 9.11981 16.0958 9.11981H24.8619C25.1595 9.11981 25.4165 9.22604 25.633 9.43849C25.8494 9.65094 25.9577 9.90323 25.9577 10.1953V28.838Z" fill="white"/></svg></div>
+    <span class="right">Confidential — Investor Use Only</span>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════════════════════
+    //  CONFIG — the only block you ever need to touch
+    // ════════════════════════════════════════════════════════════════
+    const CONFIG = {
+      // Paste the published CSV link for the FUNDRAISING tab here:
+      csvUrl: 'PASTE_FUNDRAISING_CSV_URL_HERE',
+
+      // The "Full pack" banner. Set unlocked:true to turn it into a live
+      // link; false shows the locked "Request access" state.
+      fullAccessBanner: {
+        title: 'Full Due Diligence Pack',
+        sub: 'Additional documents available at the next stage.',
+        unlocked: false,
+        url: 'livesync-full-diligence-pack.html'
+      }
+    };
+
+    // ── Header aliases: maps your sheet's column titles to internal keys ──
+    const HEADER_MAP = {
+      'itemno':'num','itemnumber':'num','no':'num','number':'num','ref':'num','section':'num',
+      'item':'name','title':'name',
+      'description':'desc','desc':'desc','notes':'desc',
+      'documentname':'docName','docname':'docName','document':'docName','documents':'docName','filename':'docName',
+      'link':'link','links':'link','url':'link','urls':'link',
+      'lastupdated':'date','updated':'date','date':'date',
+    };
+    const NA_PHRASES = ['not applicable at this point in time','awaiting pilot','n/a','not applicable','tbc','tbd'];
+
+    function normHeader(h){ return (h||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+    // CSV parser handling quoted fields with commas / newlines
+    function parseCSV(text){
+      const rows=[]; let row=[], field='', q=false;
+      for(let i=0;i<text.length;i++){
+        const c=text[i], n=text[i+1];
+        if(q){ if(c=='"'&&n=='"'){field+='"';i++;} else if(c=='"'){q=false;} else field+=c; }
+        else { if(c=='"')q=true; else if(c==','){row.push(field);field='';}
+               else if(c=='\n'||(c=='\r'&&n=='\n')){ if(c=='\r')i++; row.push(field); rows.push(row); row=[]; field=''; }
+               else field+=c; }
+      }
+      if(field||row.length){ row.push(field); rows.push(row); }
+      return rows.map(r=>r.map(c=>c.trim()));
+    }
+
+    // Find the header row (first row with >=2 recognised headers) and map columns
+    function mapColumns(rows){
+      for(let i=0;i<Math.min(rows.length,10);i++){
+        const map={}; let hits=0;
+        rows[i].forEach((cell,idx)=>{ const k=HEADER_MAP[normHeader(cell)]; if(k && !(k in map)){ map[k]=idx; hits++; } });
+        if(hits>=2) return { headerIndex:i, map };
+      }
+      // Fallback: assume positional order
+      return { headerIndex:0, map:{num:0,name:1,desc:2,docName:3,link:4,date:5} };
+    }
+
+    // A row is a section header only if its number is "N" or "N.0" (e.g. 1, 1.0, 10.0)
+    function isSectionHeader(num){ return /^\d+(\.0+)?$/.test((num||'').trim()); }
+    // The major group number for any row: "5.1" -> "5", "5.0" -> "5", "5" -> "5"
+    function majorOf(num){ const m=(num||'').trim().match(/^(\d+)/); return m?m[1]:null; }
+    function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function emoji(s){ const m=s.match(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u); return m?m[0]:''; }
+    function stripEmoji(s){ return s.replace(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s*/gu,'').trim(); }
+
+    // Pair document names with links by position (both pipe-separated)
+    function buildLinks(docNames, links){
+      const names=(docNames||'').split('|').map(s=>s.trim()).filter(Boolean);
+      const urls=(links||'').split('|').map(s=>s.trim()).filter(Boolean);
+      if(!urls.length) return [];
+      return urls.map((u,i)=>({ url:u, label:names[i]||'View' }));
+    }
+
+    function renderBanner(){
+      const slot=document.getElementById('banner-slot');
+      if(CONFIG.fullAccessBanner){
+        const b=CONFIG.fullAccessBanner;
+        const btn = b.unlocked
+          ? `<a class="b-btn-active" href="${esc(b.url)}">Open full pack
+              <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`
+          : `<span class="b-btn-locked">🔒 Request access from the LIVESYNC team</span>`;
+        slot.innerHTML = `
+          <div class="banner">
+            <div class="b-text">
+              <div class="b-icon">${b.unlocked?'📂':'🔒'}</div>
+              <div>
+                <div class="b-title">${esc(b.title)}</div>
+                <div class="b-sub">${esc(b.sub)}</div>
+              </div>
+            </div>
+            ${btn}
+          </div>`;
+      } else if(CONFIG.backLink){
+        slot.innerHTML = `<div style="margin-bottom:32px;"><a class="b-back" href="${esc(CONFIG.backLink.url)}">← ${esc(CONFIG.backLink.label)}</a></div>`;
+      }
+    }
+
+    function render(rows){
+      const { headerIndex, map } = mapColumns(rows);
+      const get=(r,k)=> (map[k]!=null ? (r[map[k]]||'') : '');
+
+      const data = rows.slice(headerIndex+1).map(r=>({
+        num:get(r,'num'), name:get(r,'name'), desc:get(r,'desc'),
+        docName:get(r,'docName'), link:get(r,'link'), date:get(r,'date'),
+      })).filter(it=>{
+        const id=(it.num+it.name).trim();
+        if(!id) return false;
+        if(/^#REF/.test(it.num)||/^#REF/.test(it.name)) return false;
+        if(/^\.*$/.test(it.num+it.name)) return false;
+        return true;
+      });
+
+      // Group by major number (the "5" in "5.1"). A header row (N.0) supplies
+      // the group's title/desc/emoji; if missing, the group still forms.
+      const sections=[]; const byMajor={}; let orphan=null;
+      function ensureGroup(major){
+        if(!byMajor[major]){ const g={ major, num:major, name:'Section '+major, desc:'', items:[] }; byMajor[major]=g; sections.push(g); }
+        return byMajor[major];
+      }
+      data.forEach(it=>{
+        const major=majorOf(it.num);
+        if(major===null){
+          // No usable number — keep with the current group, else a leading bucket
+          if(sections.length){ sections[sections.length-1].items.push(it); }
+          else { if(!orphan){ orphan={ major:'', num:'', name:'Overview', desc:'', items:[] }; sections.unshift(orphan); } orphan.items.push(it); }
+          return;
+        }
+        const g=ensureGroup(major);
+        if(isSectionHeader(it.num)){ g.num=it.num; g.name=it.name||g.name; g.desc=it.desc||g.desc; }
+        else { g.items.push(it); }
+      });
+
+      document.getElementById('item-count').textContent =
+        sections.reduce((a,s)=>a+s.items.length,0)+' items';
+      document.getElementById('last-refresh').textContent =
+        'Live · '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+      document.getElementById('nav-links').innerHTML = sections.map(s=>{
+        const id='sec-'+(s.num||s.name).replace(/[^a-z0-9]/gi,'-');
+        return `<a class="nav-item" href="#${id}"><span class="nav-emoji">${emoji(s.name)}</span>${esc(stripEmoji(s.name))}</a>`;
+      }).join('');
+
+      document.getElementById('content').innerHTML = sections.map(s=>{
+        const id='sec-'+(s.num||s.name).replace(/[^a-z0-9]/gi,'-');
+        const items=s.items.map(it=>{
+          const links=buildLinks(it.docName,it.link);
+          const isNA=it.desc && NA_PHRASES.includes(it.desc.trim().toLowerCase().replace(/\.$/,''));
+          const linksHTML=links.length
+            ? `<div class="item-links">`+links.map(l=>`<a class="item-btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}<svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`).join('')+`</div>`
+            : `<div class="item-links"></div>`;
+          const descHTML=it.desc?`<div class="item-description${isNA?' na':''}">${esc(it.desc)}</div>`:'';
+          return `<div class="item-row">
+              <div class="item-num-col">${esc(it.num)}</div>
+              <div><div class="item-name">${esc(it.name)}</div>${descHTML}</div>
+              ${linksHTML}
+              <div class="item-date">${esc(it.date)}</div>
+            </div>`;
+        }).join('');
+        const secDesc=s.desc?`<div class="section-desc">${esc(s.desc)}</div>`:'';
+        return `<div class="section-group" id="${id}">
+            <div class="section-header"><span class="section-title">${emoji(s.name)} ${esc(stripEmoji(s.name))}</span><span class="section-number">${esc(s.num)}</span></div>
+            ${secDesc}<div class="section-rule"></div>${items}
+          </div>`;
+      }).join('');
+    }
+
+    async function loadData(){
+      renderBanner();
+      if(!CONFIG.csvUrl || CONFIG.csvUrl.startsWith('PASTE_')){
+        document.getElementById('content').innerHTML = `
+          <div class="state-box">
+            <p>Not connected to a sheet yet.</p>
+            <div class="hint">Open this file and set <code>csvUrl</code> in the CONFIG block to your published CSV link for this tab.</div>
+          </div>`;
+        document.getElementById('last-refresh').textContent='Not connected';
+        return;
+      }
+      try{
+        const res=await fetch(CONFIG.csvUrl);
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        render(parseCSV(await res.text()));
+      }catch(err){
+        document.getElementById('content').innerHTML = `
+          <div class="state-box">
+            <p>Couldn't load data from the sheet.<br><strong>Error:</strong> ${esc(err.message)}</p>
+            <div class="hint">Check the tab is published to the web as CSV and the link is correct.</div>
+          </div>`;
+        document.getElementById('last-refresh').textContent='Error';
+      }
+    }
+    loadData();
+  </script>
+</body>
+</html>
